@@ -1,5 +1,6 @@
 from machine import Pin, PWM
 from gpio_lcd import GpioLcd
+from time import sleep
 
 #########################################################################
 # LCD KONTRAST CONFIGURATION
@@ -19,13 +20,17 @@ def Print_LCD():
                   d4_pin=Pin(33), d5_pin=Pin(32), d6_pin=Pin(21), d7_pin=Pin(22),
                   num_lines=4, num_columns=20)
     lcd.clear()
-    lcd.putstr("Programmering -")
-    lcd.move_to(0, 1)
-    lcd.putstr("Lektion X:")    
+    lcd.putstr("   -={ Bar 16 }=-")
     lcd.move_to(0, 2)
-    lcd.putstr("Emne")
-    #lcd.move_to(0, 3)
-    #lcd.putstr("Something!")
+    lcd.putstr("System starting")
+    system_starting_animated(lcd)
+
+
+def system_starting_animated(lcd_object):
+    dots = "....."
+    for x in dots:
+        sleep(0.5)
+        lcd_object.putstr(x)
 
 Print_LCD()
 

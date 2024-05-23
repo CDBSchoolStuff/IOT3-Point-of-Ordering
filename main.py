@@ -34,6 +34,7 @@ MQTT_TOPIC_LITER = "mqtt_order"
 while True:
     try:
         print("Running")
+        sleep(1)
         
     except KeyboardInterrupt:
         print('Ctrl-C pressed...exiting')

@@ -1,39 +1,45 @@
 from machine import Pin, PWM
-from gpio_lcd import GpioLcd
+import _thread
+import lcd_controller
+
 from time import sleep
 
-#########################################################################
-# LCD KONTRAST CONFIGURATION
 
-pin_lcd_contrast = 23
-contrast_level = 250                        # Varies from LCD to LCD and wanted contrast level: 0-1023
-lcd_contrast = PWM(Pin(pin_lcd_contrast))   # Create PWM object from a pin
-lcd_contrast.freq(440)                      # Set PWM frequency
-lcd_contrast.duty(contrast_level)
 
 #########################################################################
-# LCD KONTRAST CONFIGURATION SLUT
+# VARIABLES
 
-def Print_LCD():
-    # Create the LCD object
-    lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
-                  d4_pin=Pin(33), d5_pin=Pin(32), d6_pin=Pin(21), d7_pin=Pin(22),
-                  num_lines=4, num_columns=20)
-    lcd.clear()
-    lcd.putstr("   -={ Bar 16 }=-")
-    lcd.move_to(0, 2)
-    lcd.putstr("System starting")
-    system_starting_animated(lcd)
+starting = True
+ready_to_continue = False
+has_run = False
+
+#########################################################################
+# BOOT PROGRAM
+
+def boot_sequence_thread():
+    try:    
+        string1 = "   -={ Bar 16 }=-"
+        string2 = "System starting"
+
+        while starting:
+            lcd_controller.lcd.clear()
+            lcd_controller.lcd.putstr(string1)
+            lcd_controller.lcd.move_to(0, 2)
+            lcd_controller.lcd.putstr(string2)
+            lcd_controller.lcd.move_to(len(string2), 2)
+            lcd_controller.lcd_dot_animation()
+            
+        lcd_controller.lcd.clear()
+        global ready_to_continue
+        ready_to_continue = True
+        _thread.exit
+        
+    except KeyboardInterrupt:
+        print('Ctrl-C pressed...exiting thread')
+        _thread.exit
 
 
-def system_starting_animated(lcd_object):
-    dots = "....."
-    for x in dots:
-        sleep(0.5)
-        lcd_object.putstr(x)
-
-Print_LCD()
-
+_thread.start_new_thread(boot_sequence_thread, ())
 
 # Ukommenter, hvis der arbejdes med MQTT
 # --------------------------------------
@@ -41,6 +47,19 @@ Print_LCD()
 # import sys # Ukommenter, hvis der arbejdes med MQTT
 
 # sys.path.reverse()
-# print("\n\n\nESP32 starter op")
+
+print("\n\n\nESP32 starter op")
 
 # --------------------------------------
+
+sleep(5)
+starting = False
+
+
+# This while loop ensures that the code in main.py will not run before the boot sequence has stopped running.
+while not ready_to_continue:
+    if not has_run:
+        has_run = True
+        print("Holding program hostage until it starting sequence has ended.")
+    
+print("Continuing...")

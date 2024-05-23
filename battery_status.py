@@ -2,9 +2,8 @@ from machine import Pin
 import time
 
 
-########################################
-# OWN MODULES
-
+# This class borrows code from a prior project: 
+# https://github.com/CDBSchoolStuff/IOT2-Cleanflow/blob/main/battery_status.py
 
 class Battery_Status:
     #########################################################################

@@ -35,7 +35,7 @@ def boot_sequence_thread():
     while starting:
         lcd_controller.lcd_boot_message(STRING_1, STRING_2)
         
-    lcd_controller.lcd.clear()
+    #lcd_controller.lcd.clear()
     global ready_to_continue
     ready_to_continue = True
     _thread.exit            

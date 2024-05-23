@@ -17,13 +17,28 @@ import lcd_controller
 #########################################################################
 # CONFIGURATION
 
-PIN_BAT = 32
+PIN_BATTERY = 32
+PIN_BUTTON_1 = 0
+PIN_BUTTON_2 = 12
+
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_LITER = "mqtt_order"
 
 
 #########################################################################
-# OBJECTS
+# CONSTANTS
+
+
+DRINKS_BEER = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
+DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
+
+DRINKS_CATEGORIES = ["Beer", "Cocktails"]
+
+
+ARROW_STRING = "<---"
+
+TICK_PERIOD_BUTTON = 100
+
 
 
 
@@ -31,54 +46,92 @@ MQTT_TOPIC_LITER = "mqtt_order"
 #########################################################################
 # VARIABLES
 
+menu_location = 0
+pb1 = Pin(PIN_BUTTON_1, Pin.IN)             # External pull-up and debounce
+pb2 = Pin(PIN_BUTTON_2, Pin.IN)
 
+current_menu = DRINKS_CATEGORIES # Sets the default menu
+
+# tuborg = {
+#   "name": "Tuborg",
+#   "quantity": 0
+# }
+
+# carlsberg = {
+#   "name": "Carlsberg",
+#   "quantity": 0
+# }
+
+# drinks_beer = [tuborg, carlsberg]
+categories = [DRINKS_BEER, DRINKS_COCKTAIL]
 #########################################################################
 # FUNCTIONS
 
+def menu_controller():
+    lcd_controller.lcd.clear()
+    lcd_controller.lcd.move_to(0, 0)
+    lcd_controller.lcd.putstr("   -={ Bar 16 }=-")
+    lcd_controller.lcd.move_to(0, 1)
+    if menu_location != 0:
+        lcd_controller.lcd.putstr(f"{menu_location - 1}: {current_menu[menu_location - 1]}") # Previous menu location
+    lcd_controller.lcd.move_to(0, 2)
+    lcd_controller.lcd.putstr(f"{menu_location}: {current_menu[menu_location]}") # Curent menu location
+    lcd_controller.lcd.move_to(20 - len(ARROW_STRING), 2) # len(ARROW_STRING) ensures that the arrow will always be in the correct place.
+    lcd_controller.lcd.putstr(ARROW_STRING)
+    lcd_controller.lcd.move_to(0, 3)
+    if menu_location < len(current_menu) - 1:
+        lcd_controller.lcd.putstr(f"{menu_location + 1}: {current_menu[menu_location + 1]}") # Next menu location
+    print(f"Menu Location: {menu_location}")
 
-DRINKS_BEER = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
-DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
+
+     
+
+#########################################################################
+# RUN ONCE
+
+menu_controller()
 
 
 #########################################################################
 # PROGRAM
 
-left = False
-right = False
-counter = 0
-
-
-menu_location = 0
-
-
-def menu_controller():
-    lcd_controller.lcd.clear()
-    lcd_controller.lcd.move_to(0, 0)
-    if menu_location != 0:
-        lcd_controller.lcd.putstr(f"{menu_location - 1}: {DRINKS_BEER[menu_location - 1]}") # Previous menu location
-    lcd_controller.lcd.move_to(0, 1)
-    lcd_controller.lcd.putstr(f"{menu_location}: {DRINKS_BEER[menu_location]}") # Curent menu location
-    lcd_controller.lcd.move_to(0, 2)
-    if menu_location < len(DRINKS_BEER) - 1:
-        lcd_controller.lcd.putstr(f"{menu_location + 1}: {DRINKS_BEER[menu_location + 1]}") # Next menu location
-    print(f"Menu Location: {menu_location}")
-
 while True:
     try:
+        pb1_val = pb1.value()              # Read onboard push button 1, active low
+        pb2_val = pb2.value()
+        
+    
+        if pb1_val == 0:
+            if current_menu == DRINKS_CATEGORIES:
+                current_menu = categories[menu_location]
+                menu_location = 0 # Resets menu location to avoid outside index error
+                print(f"1Set current menu to: {current_menu}")
+                menu_controller()
+                sleep(0.5)
+        
+        if pb2_val == 1:
+            if current_menu != DRINKS_CATEGORIES:
+                current_menu = DRINKS_CATEGORIES
+                menu_location = 0 # Resets menu location to avoid outside index error
+                print(f"3Set current menu to: {current_menu}")
+                menu_controller()
+                sleep(0.5)
+        
         # Read the rotary encoder
         res = rotary_encoder.re_full_step()    
         
         if (res == 1):
             print("Right/CW")
-            if menu_location < len(DRINKS_BEER) - 1: # Minus one here cuz lists start from 0
+            if menu_location < len(current_menu) - 1: # Minus one here cuz lists start from 0
                 menu_location += 1
-            menu_controller()
+                menu_controller()
         elif (res == -1):
             print("Left/CCW")
             if menu_location > 0: # Ensures that the value can't go below 0
                 menu_location -= 1
-            menu_controller()
+                menu_controller()
         
+    
         
     except KeyboardInterrupt:
         print('Ctrl-C pressed...exiting')

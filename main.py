@@ -36,8 +36,8 @@ MQTT_TOPIC_LITER = "mqtt_order"
 # FUNCTIONS
 
 
-beers = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
-cocktails = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
+DRINKS_BEER = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
+DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
 
 
 #########################################################################
@@ -47,6 +47,22 @@ left = False
 right = False
 counter = 0
 
+
+menu_location = 0
+
+
+def menu_controller():
+    lcd_controller.lcd.clear()
+    lcd_controller.lcd.move_to(0, 0)
+    if menu_location != 0:
+        lcd_controller.lcd.putstr(f"{menu_location - 1}: {DRINKS_BEER[menu_location - 1]}") # Previous menu location
+    lcd_controller.lcd.move_to(0, 1)
+    lcd_controller.lcd.putstr(f"{menu_location}: {DRINKS_BEER[menu_location]}") # Curent menu location
+    lcd_controller.lcd.move_to(0, 2)
+    if menu_location < len(DRINKS_BEER) - 1:
+        lcd_controller.lcd.putstr(f"{menu_location + 1}: {DRINKS_BEER[menu_location + 1]}") # Next menu location
+    print(f"Menu Location: {menu_location}")
+
 while True:
     try:
         # Read the rotary encoder
@@ -54,10 +70,17 @@ while True:
         
         if (res == 1):
             print("Right/CW")
+            if menu_location < len(DRINKS_BEER) - 1: # Minus one here cuz lists start from 0
+                menu_location += 1
+            menu_controller()
         elif (res == -1):
             print("Left/CCW")
+            if menu_location > 0: # Ensures that the value can't go below 0
+                menu_location -= 1
+            menu_controller()
         
         
     except KeyboardInterrupt:
         print('Ctrl-C pressed...exiting')
         sys.exit()
+        

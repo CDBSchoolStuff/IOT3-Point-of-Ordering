@@ -27,6 +27,8 @@ STRING_2 = "System starting"
 #########################################################################
 # BOOT PROGRAM
 
+
+# Async thread that runs a message on the LCD while the system is starting.
 def boot_sequence_thread():
     global STRING_1, STRING_2
 

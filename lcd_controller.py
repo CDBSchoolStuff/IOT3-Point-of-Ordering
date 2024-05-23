@@ -26,7 +26,7 @@ lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
 
 
 def lcd_dot_animation():
-    dots = "......"
+    dots = "....."
     for x in dots:
-        sleep(0.4)
+        sleep(0.2)
         lcd.putstr(x)

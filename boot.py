@@ -1,3 +1,5 @@
+print("\n\n\nESP32 starter op")
+
 from machine import Pin, PWM
 import _thread
 import lcd_controller
@@ -29,12 +31,7 @@ def boot_sequence_thread():
     global STRING_1, STRING_2
 
     while starting:
-        lcd_controller.lcd.clear()
-        lcd_controller.lcd.putstr(STRING_1)
-        lcd_controller.lcd.move_to(0, 2)
-        lcd_controller.lcd.putstr(STRING_2)
-        lcd_controller.lcd.move_to(len(STRING_2), 2)
-        lcd_controller.lcd_dot_animation()
+        lcd_controller.lcd_boot_message(STRING_1, STRING_2)
         
     lcd_controller.lcd.clear()
     global ready_to_continue
@@ -53,7 +50,6 @@ _thread.start_new_thread(boot_sequence_thread, ())
 
 # sys.path.reverse()
 
-print("\n\n\nESP32 starter op")
 
 # --------------------------------------
 
@@ -67,6 +63,6 @@ starting = False
 while not ready_to_continue:
     if not has_run:
         has_run = True
-        print("Holding program hostage until it starting sequence has ended.")
-
+        print("Holding program hostage until the starting sequence has ended.")
+    sleep(1)
 print(f"System took {ticks_ms() - system_start_ticks}ms to start. Continuing...")

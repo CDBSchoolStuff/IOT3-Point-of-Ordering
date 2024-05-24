@@ -43,19 +43,17 @@ menu_location = 0
 pb1 = Pin(PIN_BUTTON_1, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 pb2 = Pin(PIN_BUTTON_2, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 
-current_menu = []
+current_menu = []  # List that holds a copy of the currently displayed menu.
 
-# drinks_beer = [tuborg, carlsberg]
 
 #########################################################################
-# FUNCTIONS
+# FUNCTIONS & CLASSES
 
 
 class menu():
     def __init__(self, name, list):
         self.name = name
         self.list = list
-
 
 
 class drink():
@@ -71,6 +69,21 @@ class drink():
         self.amount += val
 
 
+def menu_controller(menu_list):
+    
+    global current_menu 
+    current_menu = menu_list
+    
+    entries = []
+    for i in range(len(menu_list)):
+        entries.append(menu_list[i].name)
+    
+    lcd_controller.lcd_print_menu(menu_location, entries)
+
+
+
+#########################################################################
+# RUN ONCE
 
 
 # ----------------------------------------
@@ -107,24 +120,10 @@ print(menu_beers[4].name)
 print(menu_categories[0].list)
 
 
-def menu_controller(menu_list):
-    
-    global current_menu 
-    current_menu = menu_list
-    
-    entries = []
-    for i in range(len(menu_list)):
-        entries.append(menu_list[i].name)
-    
-    lcd_controller.lcd_print_menu(menu_location, entries)
-
-
-
-#########################################################################
-# RUN ONCE
-
 # menu_controller(menu_categories) # Sets the default menu
 menu_controller(menu_categories) # Sets the default menu
+
+
 
 # #########################################################################
 # # PROGRAM

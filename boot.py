@@ -20,7 +20,6 @@ system_start_ticks = ticks_ms()
 #########################################################################
 # CONSTANTS
 
-STRING_1 = "   -={ Bar 16 }=-"
 STRING_2 = "System starting"
 
 
@@ -30,10 +29,10 @@ STRING_2 = "System starting"
 
 # Async thread that runs a message on the LCD while the system is starting.
 def boot_sequence_thread():
-    global STRING_1, STRING_2
+    global STRING_2
 
     while starting:
-        lcd_controller.lcd_boot_message(STRING_1, STRING_2)
+        lcd_controller.lcd_boot_message(STRING_2)
         
     #lcd_controller.lcd.clear()
     global ready_to_continue

@@ -17,7 +17,7 @@ lcd_contrast.duty(contrast_level)
 # CONTANTS
 
 ARROW_STRING = "<---"
-BRANDING_STRING = "   -={ Bar 16 }=-"
+BRANDING_STRING = "-={ Bar 16 }=-"
 
 
 #########################################################################
@@ -34,9 +34,9 @@ lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
 # FUNCTIONS
 
 
-def lcd_boot_message(string1, string2):
+def lcd_boot_message(string2):
         lcd.clear()
-        lcd.putstr(string1)
+        lcd_print_branding()
         lcd.move_to(0, 2)
         lcd.putstr(string2)
         lcd.move_to(len(string2), 2)
@@ -50,8 +50,7 @@ def lcd_dot_animation():
         
 def lcd_print_menu(menu_location, menu_list):
     lcd.clear()
-    lcd.move_to(0, 0)
-    lcd.putstr(BRANDING_STRING)
+    lcd_print_branding()
     lcd.move_to(0, 1)
     if menu_location != 0:
         lcd.putstr(f"{menu_location - 1}: {menu_list[menu_location - 1]}") # Previous menu location
@@ -64,3 +63,22 @@ def lcd_print_menu(menu_location, menu_list):
     if menu_location < len(menu_list) - 1:
         lcd.putstr(f"{menu_location + 1}: {menu_list[menu_location + 1]}") # Next menu location
     print(f"Menu Location: {menu_location}")
+    
+    
+def lcd_print_branding():
+    lcd.move_to(0, 0)
+    lcd.putstr(center_text(BRANDING_STRING))
+    
+    
+def center_text(string):
+    spacing_amount = (20-len(string))/2
+
+    spaces = ""
+    for i in range(spacing_amount):
+        spaces += " "
+    
+    return spaces + string
+
+
+def align_text_right(string):
+    return (20-len(string))

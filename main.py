@@ -136,11 +136,7 @@ while True:
         
         if pb1_val == 0:
             if current_menu == menu_categories:
-                #if current_menu not in menu_categories:
-                # menu_location = 0 # Resets menu location to avoid outside index error
                 print(f"Set menu to: {menu_categories[menu_location].name}")
-                
-                # menu_name = menu_categories[menu_location].name
                 
                 menu_controller(menu_categories[menu_location].list)
             sleep(0.5)
@@ -153,8 +149,10 @@ while True:
                 menu_controller(menu_categories) # Returns to the category menu
                 sleep(0.5)
         
-        # Read the rotary encoder
-        res = rotary_encoder.re_full_step()    
+        # ----------------------------------------
+        # Rotary Encoder stuff
+        
+        res = rotary_encoder.re_full_step()    # Reads the rotary encoder
         
         if (res == 1):
             print("Right/CW")
@@ -167,7 +165,7 @@ while True:
                 menu_location -= 1
                 menu_controller(current_menu) # Prints to the lcd and carries with is the current_menu
         
-    
+        # ----------------------------------------
         
     except KeyboardInterrupt:
         print('Ctrl-C pressed...exiting')

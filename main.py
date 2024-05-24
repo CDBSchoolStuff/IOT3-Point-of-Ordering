@@ -11,7 +11,6 @@ from time import ticks_ms, sleep
 import sys
 
 
-import drink
 import lcd_controller
 
 
@@ -21,6 +20,7 @@ import lcd_controller
 PIN_BATTERY = 32
 PIN_BUTTON_1 = 4
 PIN_BUTTON_2 = 12
+PIN_BUTTON_3 = 14
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_LITER = "mqtt_order"
@@ -42,6 +42,7 @@ DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiqui
 menu_location = 0
 pb1 = Pin(PIN_BUTTON_1, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 pb2 = Pin(PIN_BUTTON_2, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
+pb3 = Pin(PIN_BUTTON_3, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 
 current_menu = []  # List that holds a copy of the currently displayed menu.
 
@@ -50,13 +51,13 @@ current_menu = []  # List that holds a copy of the currently displayed menu.
 # FUNCTIONS & CLASSES
 
 
-class menu():
+class Menu():
     def __init__(self, name, list):
         self.name = name
         self.list = list
 
 
-class drink():
+class Drink():
     amount = 0
     
     def __init__(self, name):
@@ -85,14 +86,13 @@ def menu_controller(menu_list):
 #########################################################################
 # RUN ONCE
 
-
 # ----------------------------------------
 # Beer menu
 
 menu_beers = []
 
 for i in range(len(DRINKS_BEER)):
-    menu_beers.append(drink(DRINKS_BEER[i]))
+    menu_beers.append(Drink(DRINKS_BEER[i]))
 
 
 # ----------------------------------------
@@ -100,8 +100,9 @@ for i in range(len(DRINKS_BEER)):
 
 menu_cocktails = []
 
+# Iterates through the static DRINKS_COCKTAIL list to create objects objects based on the Drinks class
 for i in range(len(DRINKS_COCKTAIL)):
-    menu_cocktails.append(drink(DRINKS_COCKTAIL[i]))
+    menu_cocktails.append(Drink(DRINKS_COCKTAIL[i]))
 
 
 # ----------------------------------------
@@ -109,8 +110,8 @@ for i in range(len(DRINKS_COCKTAIL)):
 
 menu_categories = []
 
-menu_categories.append(menu("Beer", menu_beers))
-menu_categories.append(menu("Cocktail", menu_cocktails))
+menu_categories.append(Menu("Beer", menu_beers))
+menu_categories.append(Menu("Cocktail", menu_cocktails))
 
 
 # ----------------------------------------
@@ -130,15 +131,32 @@ menu_controller(menu_categories) # Sets the default menu
 
 while True:
     try:
+        # ----------------------------------------
+        # Pusb button stuff
+        
         pb1_val = pb1.value()              # Read onboard push button 1, active low
         pb2_val = pb2.value()
+        # pb3_val = pb3.value()
         
         if pb1_val == 0:
             if current_menu == menu_categories:
                 print(f"Set menu to: {menu_categories[menu_location].name}")
                 
                 menu_controller(menu_categories[menu_location].list)
-            sleep(0.5)
+                sleep(0.5)
+                
+            
+            # This handles the actions of the select button when inside either the Beer or Cocktail categories.
+            elif current_menu != menu_categories:
+                print(f"Selected: {current_menu[menu_location].name}")
+                
+                test_amount = 1
+                
+                current_menu[menu_location].add_amount(test_amount) # Runs the add_amount method for the selected drink to add an amount to the order.
+                print(f"Added {test_amount} to amount for: {current_menu[menu_location].name}")
+                print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
+                sleep(0.5)
+            
         
         # Allows for returning to the categories menu if not already in that menu.
         if pb2_val == 0:

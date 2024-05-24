@@ -33,8 +33,6 @@ MQTT_TOPIC_LITER = "mqtt_order"
 DRINKS_BEER = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
 DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
 
-DRINKS_CATEGORIES = ["Beer", "Cocktails"]
-
 
 
 
@@ -45,56 +43,114 @@ menu_location = 0
 pb1 = Pin(PIN_BUTTON_1, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 pb2 = Pin(PIN_BUTTON_2, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 
-current_menu = DRINKS_CATEGORIES # Sets the default menu
-
+current_menu = []
 
 # drinks_beer = [tuborg, carlsberg]
-categories = [DRINKS_BEER, DRINKS_COCKTAIL]
+
 #########################################################################
 # FUNCTIONS
 
 
 class menu():
-    menu_name = ""
-    menu_list = []
+    def __init__(self, name, list):
+        self.name = name
+        self.list = list
+
+
+
+class drink():
+    amount = 0
     
+    def __init__(self, name):
+        self.name = name
+        
+    def add_amount(self, val):
+        self.amount += val
+        
+    def remove_amount(self, val):
+        self.amount += val
 
 
-def menu_controller():
+
+
+# ----------------------------------------
+# Beer menu
+
+menu_beers = []
+
+for i in range(len(DRINKS_BEER)):
+    menu_beers.append(drink(DRINKS_BEER[i]))
+
+
+# ----------------------------------------
+# Cocktail menu
+
+menu_cocktails = []
+
+for i in range(len(DRINKS_COCKTAIL)):
+    menu_cocktails.append(drink(DRINKS_COCKTAIL[i]))
+
+
+# ----------------------------------------
+# Categories menu
+
+menu_categories = []
+
+menu_categories.append(menu("Beer", menu_beers))
+menu_categories.append(menu("Cocktail", menu_cocktails))
+
+
+# ----------------------------------------
+
+print(menu_beers[4].name)
+
+print(menu_categories[0].list)
+
+
+def menu_controller(menu_list):
     
-    lcd_controller.lcd_print_menu(menu_location, current_menu)
+    global current_menu 
+    current_menu = menu_list
+    
+    entries = []
+    for i in range(len(menu_list)):
+        entries.append(menu_list[i].name)
+    
+    lcd_controller.lcd_print_menu(menu_location, entries)
 
-     
+
 
 #########################################################################
 # RUN ONCE
 
-menu_controller(current_menu)
+# menu_controller(menu_categories) # Sets the default menu
+menu_controller(menu_categories) # Sets the default menu
 
-
-#########################################################################
-# PROGRAM
+# #########################################################################
+# # PROGRAM
 
 while True:
     try:
         pb1_val = pb1.value()              # Read onboard push button 1, active low
         pb2_val = pb2.value()
         
-    
         if pb1_val == 0:
-            if current_menu == DRINKS_CATEGORIES:
-                current_menu = categories[menu_location]
-                menu_location = 0 # Resets menu location to avoid outside index error
-                print(f"1Set current menu to: {current_menu}")
-                menu_controller()
-                sleep(0.5)
+            if current_menu == menu_categories:
+                #if current_menu not in menu_categories:
+                # menu_location = 0 # Resets menu location to avoid outside index error
+                print(f"Set menu to: {menu_categories[menu_location].name}")
+                
+                # menu_name = menu_categories[menu_location].name
+                
+                menu_controller(menu_categories[menu_location].list)
+            sleep(0.5)
         
+        # Allows for returning to the categories menu if not already in that menu.
         if pb2_val == 0:
-            if current_menu != DRINKS_CATEGORIES:
-                current_menu = DRINKS_CATEGORIES
+            if current_menu != menu_categories:
                 menu_location = 0 # Resets menu location to avoid outside index error
-                print(f"3Set current menu to: {current_menu}")
-                menu_controller()
+                print(f"3Set current menu to: {menu_categories[menu_location].name}")
+                menu_controller(menu_categories) # Returns to the category menu
                 sleep(0.5)
         
         # Read the rotary encoder
@@ -104,12 +160,12 @@ while True:
             print("Right/CW")
             if menu_location < len(current_menu) - 1: # Minus one here cuz lists start from 0
                 menu_location += 1
-                menu_controller()
+                menu_controller(current_menu) # Prints to the lcd and carries with is the current_menu
         elif (res == -1):
             print("Left/CCW")
             if menu_location > 0: # Ensures that the value can't go below 0
                 menu_location -= 1
-                menu_controller()
+                menu_controller(current_menu) # Prints to the lcd and carries with is the current_menu
         
     
         

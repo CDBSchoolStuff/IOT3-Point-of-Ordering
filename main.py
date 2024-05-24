@@ -4,13 +4,14 @@ print("Running code in main.py")
 ########################################
 # IMPORT
 from adc_sub import ADC_substitute
+import rotary_encoder
 
 from machine import ADC, Pin
 from time import ticks_ms, sleep
 import sys
 
 
-import rotary_encoder
+import drink
 import lcd_controller
 
 
@@ -18,7 +19,7 @@ import lcd_controller
 # CONFIGURATION
 
 PIN_BATTERY = 32
-PIN_BUTTON_1 = 0
+PIN_BUTTON_1 = 4
 PIN_BUTTON_2 = 12
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
@@ -47,20 +48,11 @@ TICK_PERIOD_BUTTON = 100
 # VARIABLES
 
 menu_location = 0
-pb1 = Pin(PIN_BUTTON_1, Pin.IN)             # External pull-up and debounce
-pb2 = Pin(PIN_BUTTON_2, Pin.IN)
+pb1 = Pin(PIN_BUTTON_1, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
+pb2 = Pin(PIN_BUTTON_2, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 
 current_menu = DRINKS_CATEGORIES # Sets the default menu
 
-# tuborg = {
-#   "name": "Tuborg",
-#   "quantity": 0
-# }
-
-# carlsberg = {
-#   "name": "Carlsberg",
-#   "quantity": 0
-# }
 
 # drinks_beer = [tuborg, carlsberg]
 categories = [DRINKS_BEER, DRINKS_COCKTAIL]
@@ -109,7 +101,7 @@ while True:
                 menu_controller()
                 sleep(0.5)
         
-        if pb2_val == 1:
+        if pb2_val == 0:
             if current_menu != DRINKS_CATEGORIES:
                 current_menu = DRINKS_CATEGORIES
                 menu_location = 0 # Resets menu location to avoid outside index error

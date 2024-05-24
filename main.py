@@ -36,12 +36,6 @@ DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiqui
 DRINKS_CATEGORIES = ["Beer", "Cocktails"]
 
 
-ARROW_STRING = "<---"
-
-TICK_PERIOD_BUTTON = 100
-
-
-
 
 
 #########################################################################
@@ -59,29 +53,23 @@ categories = [DRINKS_BEER, DRINKS_COCKTAIL]
 #########################################################################
 # FUNCTIONS
 
-def menu_controller():
-    lcd_controller.lcd.clear()
-    lcd_controller.lcd.move_to(0, 0)
-    lcd_controller.lcd.putstr("   -={ Bar 16 }=-")
-    lcd_controller.lcd.move_to(0, 1)
-    if menu_location != 0:
-        lcd_controller.lcd.putstr(f"{menu_location - 1}: {current_menu[menu_location - 1]}") # Previous menu location
-    lcd_controller.lcd.move_to(0, 2)
-    lcd_controller.lcd.putstr(f"{menu_location}: {current_menu[menu_location]}") # Curent menu location
-    lcd_controller.lcd.move_to(20 - len(ARROW_STRING), 2) # len(ARROW_STRING) ensures that the arrow will always be in the correct place.
-    lcd_controller.lcd.putstr(ARROW_STRING)
-    lcd_controller.lcd.move_to(0, 3)
-    if menu_location < len(current_menu) - 1:
-        lcd_controller.lcd.putstr(f"{menu_location + 1}: {current_menu[menu_location + 1]}") # Next menu location
-    print(f"Menu Location: {menu_location}")
 
+class menu():
+    menu_name = ""
+    menu_list = []
+    
+
+
+def menu_controller():
+    
+    lcd_controller.lcd_print_menu(menu_location, current_menu)
 
      
 
 #########################################################################
 # RUN ONCE
 
-menu_controller()
+menu_controller(current_menu)
 
 
 #########################################################################

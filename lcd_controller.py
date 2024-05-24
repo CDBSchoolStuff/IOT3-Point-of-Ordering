@@ -14,11 +14,20 @@ lcd_contrast.duty(contrast_level)
 
 
 #########################################################################
+# CONTANTS
+
+ARROW_STRING = "<---"
+BRANDING_STRING = "   -={ Bar 16 }=-"
+
+
+#########################################################################
 # LCD OBJECT
 
 lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
                 d4_pin=Pin(33), d5_pin=Pin(32), d6_pin=Pin(21), d7_pin=Pin(22),
                 num_lines=4, num_columns=20)
+
+
 
 
 #########################################################################
@@ -38,3 +47,20 @@ def lcd_dot_animation():
     for x in dots:
         sleep(0.2)
         lcd.putstr(x)
+        
+def lcd_print_menu(menu_location, menu_list):
+    lcd.clear()
+    lcd.move_to(0, 0)
+    lcd.putstr(BRANDING_STRING)
+    lcd.move_to(0, 1)
+    if menu_location != 0:
+        lcd.putstr(f"{menu_location - 1}: {menu_list[menu_location - 1]}") # Previous menu location
+    lcd.move_to(0, 2)
+    
+    lcd.putstr(f"{menu_location}: {menu_list[menu_location]}") # Curent menu location
+    lcd.move_to(20 - len(ARROW_STRING), 2) # len(ARROW_STRING) ensures that the arrow will always be in the correct place.
+    lcd.putstr(ARROW_STRING)
+    lcd.move_to(0, 3)
+    if menu_location < len(menu_list) - 1:
+        lcd.putstr(f"{menu_location + 1}: {menu_list[menu_location + 1]}") # Next menu location
+    print(f"Menu Location: {menu_location}")

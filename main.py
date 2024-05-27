@@ -264,7 +264,7 @@ def mqtt_thread():
                 global battery_pct, prev_bat_pct, MQTT_TOPIC_BATTERY
                 # Send data if there is a change (this principle saves power)
                 if battery_pct != prev_bat_pct:
-                    data_string = f"id:{DEVICE_ID}bat:{battery_pct}" # The data to send. CHANGE IT! (Added the "sensor_id")
+                    data_string = f"{battery_pct}" # The data to send. CHANGE IT! (Added the "sensor_id")
                     
                     mqtt_sender.send_message(data_string, MQTT_TOPIC_BATTERY)
                         

@@ -73,7 +73,7 @@ _thread.start_new_thread(boot_sequence_thread, ())
 
 ##############################################################################################
 
-starting = False
+starting = False # Stops the boot sequence thread.
 
 # This while loop ensures that the code in main.py will not run before the boot sequence has stopped running.
 while not ready_to_continue:

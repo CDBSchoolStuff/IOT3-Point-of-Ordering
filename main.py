@@ -25,7 +25,7 @@ PIN_BUTTON_2 = 12
 PIN_BUTTON_3 = 0
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
-MQTT_TOPIC_LITER = "mqtt_order"
+MQTT_TOPIC_ORDER = "mqtt_order"
 
 MENU_INDEX_BEER = 0
 MENU_INDEX_COCKTAIL = 1
@@ -182,6 +182,14 @@ def confirmation_menu():
         if pb1.value() == 0:
             print(f"Sending order: {menu_categories[MENU_INDEX_SELECTED].list}")
             
+            data = []
+            for obj in menu_categories[MENU_INDEX_SELECTED].list:
+                data.append({"name": obj.name, "amount": obj.amount}) # Puts the data of the drink entry into a dict
+            
+
+            data_string = f"{data}"
+            mqtt_sender.send_message(data_string, MQTT_TOPIC_ORDER)
+
             reset_amount(menu_beers) # Reset the amount stored in the drink objects.
             reset_amount(menu_cocktails)
             update_selected_drinks()
@@ -273,7 +281,7 @@ def mqtt_thread():
             mqtt_sender.client.disconnect()
             sys.exit()
 
-_thread.start_new_thread(mqtt_thread, ())
+#_thread.start_new_thread(mqtt_thread, ())
 
 
 #------------------------------------------------------

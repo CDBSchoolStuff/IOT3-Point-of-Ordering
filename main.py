@@ -19,10 +19,10 @@ import mqtt_sender
 #########################################################################
 # CONFIGURATION
 
-PIN_BATTERY = 32
+PIN_BATTERY = 4
 PIN_BUTTON_1 = 14
 PIN_BUTTON_2 = 12
-PIN_BUTTON_3 = 4
+PIN_BUTTON_3 = 0
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_LITER = "mqtt_order"
@@ -54,6 +54,9 @@ pb3 = Pin(PIN_BUTTON_3, Pin.IN, Pin.PULL_UP)             # No external pull-up o
 current_menu = []  # List that holds a copy of the currently displayed menu.
 
 counter = 0
+
+battery_pct = 0
+prev_bat_pct = 0
 
 #########################################################################
 # OBJECTS
@@ -100,15 +103,7 @@ def menu_controller(menu_list, reset_location):
     lcd_controller.lcd_print_menu(menu_location, entries)
 
         
-        
-        #for obj in categories[i]:
-            
 
-    # for i in range(drink_list):
-    #     if drink_list[i].amount > 0:
-    #         obj = drink_list[i]
-    #         print(f"Appended to selected: {obj.name} {obj.amount}")
-    #         selected.append(obj)
 #########################################################################
 # RUN ONCE
 
@@ -264,7 +259,7 @@ def mqtt_thread():
                 global battery_pct, prev_bat_pct, MQTT_TOPIC_BATTERY
                 # Send data if there is a change (this principle saves power)
                 if battery_pct != prev_bat_pct:
-                    data_string = f"{battery_pct}" # The data to send. CHANGE IT! (Added the "sensor_id")
+                    data_string = f"{battery_pct}"
                     
                     mqtt_sender.send_message(data_string, MQTT_TOPIC_BATTERY)
                         

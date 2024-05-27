@@ -11,6 +11,11 @@ import machine, time
 from umqttsimple import MQTTClient
 from credentials import credentials
 
+
+# This library borrows code from a prior project: 
+# https://github.com/CDBSchoolStuff/IOT2-Cleanflow/blob/main/mqtt_sender.py
+
+
 mqtt_server = credentials['mqtt_server']
 client_id = ubinascii.hexlify(machine.unique_id())
 topic_sub = b'mqtt_data'
@@ -26,27 +31,6 @@ mqtt_connected = False
 
 #########################################################################
 # FUNCTIONS
-
-# def sub_cb(topic, msg):
-#     print((topic, msg))
-#     if topic == b'notification' and msg == b'received':
-#         print('ESP received hello message')
-
-# def connect_and_subscribe():
-#     global mqtt_connected
-#     try:
-#         print("Connecting to %s MQTT broker..." % (mqtt_server))
-#         #global client_id, mqtt_server, topic_sub
-#         client = MQTTClient(client_id, mqtt_server)
-#         client.set_callback(sub_cb)
-#         client.connect()
-#         client.subscribe(topic_sub)
-#         print('Connected to %s MQTT broker, subscribed to %s topic' % (mqtt_server, topic_sub))
-#         mqtt_connected = True
-#         return client
-#     except:
-#         print("Failed to connect to MQTT broker. Continuing...")
-#         mqtt_connected = False
 
 def restart_and_reconnect():
     print('[MQTT] Failed to connect to MQTT broker. Reconnecting...')

@@ -5,7 +5,6 @@ import _thread
 import sys
 from time import ticks_ms, sleep
 import network
-import esp
 
 import lcd_controller
 from credentials import credentials
@@ -48,8 +47,8 @@ def boot_sequence_thread():
 _thread.start_new_thread(boot_sequence_thread, ())
 
 
-##############################################################################################
-# WRITE ADDITIONAL STARTUP CODE HERE
+#########################################################################
+# WIFI CODE
 
 
 # ssid = credentials['ssid']
@@ -71,7 +70,7 @@ _thread.start_new_thread(boot_sequence_thread, ())
 #     print("Network connection failed.")
 
 
-##############################################################################################
+#########################################################################
 
 starting = False # Stops the boot sequence thread.
 

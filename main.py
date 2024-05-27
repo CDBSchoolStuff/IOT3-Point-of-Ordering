@@ -18,13 +18,16 @@ import lcd_controller
 # CONFIGURATION
 
 PIN_BATTERY = 32
-PIN_BUTTON_1 = 4
+PIN_BUTTON_1 = 14
 PIN_BUTTON_2 = 12
-PIN_BUTTON_3 = 14
+PIN_BUTTON_3 = 4
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_LITER = "mqtt_order"
 
+MENU_INDEX_BEER = 0
+MENU_INDEX_COCKTAIL = 1
+MENU_INDEX_SELECTED = 2
 
 #########################################################################
 # CONSTANTS
@@ -70,20 +73,31 @@ class Drink():
     def remove_amount(self, val):
         self.amount += val
 
-
-def menu_controller(menu_list):
+# Takes a list and a boolean as arguments. The list is for constructing the menu. The boolean is for indicating that the menu location should be reset when printing.
+def menu_controller(menu_list, reset_location):
     
-    global current_menu 
+    global current_menu, menu_location
     current_menu = menu_list
     
     entries = []
     for i in range(len(menu_list)):
         entries.append(menu_list[i].name)
     
+    if reset_location == True: # Resets menu location to prevent crash if the menu location is outside of the current menu list
+        menu_location = 0
+
     lcd_controller.lcd_print_menu(menu_location, entries)
 
+        
+        
+        #for obj in categories[i]:
+            
 
-
+    # for i in range(drink_list):
+    #     if drink_list[i].amount > 0:
+    #         obj = drink_list[i]
+    #         print(f"Appended to selected: {obj.name} {obj.amount}")
+    #         selected.append(obj)
 #########################################################################
 # RUN ONCE
 
@@ -113,7 +127,7 @@ menu_categories = []
 
 menu_categories.append(Menu("Beer", menu_beers))
 menu_categories.append(Menu("Cocktail", menu_cocktails))
-
+menu_categories.append(Menu("Confirm order", []))
 
 # ----------------------------------------
 
@@ -122,7 +136,7 @@ print(menu_beers[4].name)
 print(menu_categories[0].list)
 
 
-menu_controller(menu_categories) # Sets the default menu
+menu_controller(menu_categories, True) # Sets the default menu
 
 # current_menu = menu_beers  # Used for testing, remove after
 
@@ -142,35 +156,86 @@ def selecting_menu(count):
     lcd_controller.lcd.move_to(lcd_controller.align_text_right(f"{count}"), 2)
     lcd_controller.lcd.putstr(f"{count}")
 
+# Resets the amount variable stored in the drink objects.
+# Takes list of drink objects as argument.
+def reset_amount(obj_list):
+    for obj in obj_list:
+        obj.amount = 0
+    return obj_list
 
-# selecting_menu(0)
+def confirmation_menu():
+    print(f"Opened confirmation screen")
+    lcd_controller.lcd.clear()
+    lcd_controller.lcd_print_branding()
+    lcd_controller.lcd.move_to(0, 2)
+    lcd_controller.lcd.putstr(f"Press again to send order.")
+
+    waiting_for_confirm = True
+
+    while waiting_for_confirm:
+        if pb1.value() == 0:
+            print(f"Sending order: {menu_categories[MENU_INDEX_SELECTED].list}")
+            
+            reset_amount(menu_beers) # Reset the amount stored in the drink objects.
+            reset_amount(menu_cocktails)
+            update_selected_drinks()
+            menu_controller(menu_categories, True) # Ensures that the selection screen closes
+
+            waiting_for_confirm = False
+            sleep(0.2)
+            break
+        elif pb2.value() == 0:
+            print(f"Confirmation aborted")
+
+            menu_controller(current_menu, False)
+            waiting_for_confirm = False
+            sleep(0.2)
+            break
+    
 
 
+
+def update_selected_drinks():
+    print("Updating selected drinks list.")
+    drinks = menu_beers + menu_cocktails
+    drinks_with_amount = []
+
+    for obj in drinks:
+        if obj.amount > 0:
+            drinks_with_amount.append(obj)
+            print(f"Added {obj.name} to selected list")
+        # elif obj.amount <= 0 and obj in selected:
+        #     selected.remove(obj)
+        #     print(f"Removed {obj.name} from selected list")
+    
+    menu_categories[MENU_INDEX_SELECTED].list = drinks_with_amount
+    print(f"Selected drinks: {menu_categories[MENU_INDEX_SELECTED].list}")
 
 
 
 # #########################################################################
 # # PROGRAM
 
+
 while True:
     try:
         # ----------------------------------------
-        # Pusb button stuff
+        # Push button stuff
         
         pb1_val = pb1.value()              # Read onboard push button 1, active low
         pb2_val = pb2.value()
         # pb3_val = pb3.value()
         
         if pb1_val == 0:
-            if current_menu == menu_categories and not selecting:
+            if current_menu == menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
                 print(f"Set menu to: {menu_categories[menu_location].name}")
-                
-                menu_controller(menu_categories[menu_location].list)
+                print(f"Menu entries: {menu_categories[menu_location].list}")
+                menu_controller(menu_categories[menu_location].list, True)
                 sleep(0.5)
                 
             
             # This handles the actions of the select button when inside either the Beer or Cocktail categories.
-            elif current_menu != menu_categories and not selecting:
+            elif current_menu != menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
                 print(f"Selected: {current_menu[menu_location].name}")
                 
                 # test_amount = 1
@@ -183,16 +248,22 @@ while True:
                 selecting = True  
                 sleep(0.5)
             
-            # Adds the counter variable to the amount of the current item
+            # Adds the counter variable to the amount of the current item & updates the list of selected drinks
             elif selecting:
                 current_menu[menu_location].add_amount(counter)
                 print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
                 selecting = False
-                menu_controller(current_menu) # Ensures that the selection screen closes
+                update_selected_drinks()
+                # selected.append(current_menu[menu_location])
+                menu_controller(current_menu, False) # Ensures that the selection screen closes
                 counter = 0 # Resets counter variable
                 sleep(0.5)
-                
             
+            # Adds clickable event to selected drinks menu.
+            elif current_menu == menu_categories[MENU_INDEX_SELECTED].list and menu_categories[MENU_INDEX_SELECTED].list:
+                confirmation_menu()
+                sleep(0.5)
+
         
         # Allows for returning to the categories menu if not already in that menu.
         if pb2_val == 0:
@@ -203,7 +274,7 @@ while True:
                     selecting = False
                     
                 print(f"Set current menu to: {menu_categories[menu_location].name}")
-                menu_controller(menu_categories) # Returns to the category menu
+                menu_controller(menu_categories, False) # Returns to the category menu
                 sleep(0.5)
         
         # ----------------------------------------
@@ -231,12 +302,12 @@ while True:
                 print("Right/CW")
                 if menu_location < len(current_menu) - 1: # Minus one here cuz lists start from 0
                     menu_location += 1
-                    menu_controller(current_menu) # Prints to the lcd and carries with is the current_menu
+                    menu_controller(current_menu, False) # Prints to the lcd and carries with is the current_menu
             elif (res == -1):
                 print("Left/CCW")
                 if menu_location > 0: # Ensures that the value can't go below 0
                     menu_location -= 1
-                    menu_controller(current_menu) # Prints to the lcd and carries with is the current_menu
+                    menu_controller(current_menu, False) # Prints to the lcd and carries with is the current_menu
         
         
         # ----------------------------------------

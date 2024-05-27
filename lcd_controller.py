@@ -51,19 +51,25 @@ def lcd_dot_animation():
 def lcd_print_menu(menu_location, menu_list):
     lcd.clear()
     lcd_print_branding()
-    lcd.move_to(0, 1)
-    if menu_location != 0:
-        lcd.putstr(f"{menu_location - 1}: {menu_list[menu_location - 1]}") # Previous menu location
-    lcd.move_to(0, 2)
     
-    lcd.putstr(f"{menu_location}: {menu_list[menu_location]}") # Curent menu location
-    lcd.move_to(20 - len(ARROW_STRING), 2) # len(ARROW_STRING) ensures that the arrow will always be in the correct place.
-    lcd.putstr(ARROW_STRING)
-    lcd.move_to(0, 3)
-    if menu_location < len(menu_list) - 1:
-        lcd.putstr(f"{menu_location + 1}: {menu_list[menu_location + 1]}") # Next menu location
-    print(f"Menu Location: {menu_location}")
-    
+    if menu_list: # Prevents crash if the menu list is empty
+        if menu_location != 0:
+            lcd.move_to(0, 1)
+            lcd.putstr(f"{menu_location - 1}: {menu_list[menu_location - 1]}") # Previous menu location
+        
+        if menu_location < len(menu_list):
+            lcd.move_to(0, 2)
+            lcd.putstr(f"{menu_location}: {menu_list[menu_location]}") # Curent menu location
+        lcd.move_to(20 - len(ARROW_STRING), 2) # len(ARROW_STRING) ensures that the arrow will always be in the correct place.
+        lcd.putstr(ARROW_STRING)
+        lcd.move_to(0, 3)
+        
+        if menu_location < len(menu_list) - 1:
+            lcd.putstr(f"{menu_location + 1}: {menu_list[menu_location + 1]}") # Next menu location
+        print(f"Menu Location: {menu_location}")
+    else:
+        lcd.move_to(0, 2)
+        lcd.putstr("Nothing to see here yet...")
     
 def lcd_print_branding():
     lcd.move_to(0, 0)

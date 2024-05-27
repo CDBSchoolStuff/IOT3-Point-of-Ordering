@@ -9,9 +9,11 @@ import rotary_encoder
 from machine import ADC, Pin
 from time import ticks_ms, sleep
 import sys
+import _thread
 
-
+from battery_status import Battery_Status
 import lcd_controller
+import mqtt_sender
 
 
 #########################################################################
@@ -28,6 +30,8 @@ MQTT_TOPIC_LITER = "mqtt_order"
 MENU_INDEX_BEER = 0
 MENU_INDEX_COCKTAIL = 1
 MENU_INDEX_SELECTED = 2
+
+DEVICE_ID = 1
 
 #########################################################################
 # CONSTANTS
@@ -50,6 +54,13 @@ pb3 = Pin(PIN_BUTTON_3, Pin.IN, Pin.PULL_UP)             # No external pull-up o
 current_menu = []  # List that holds a copy of the currently displayed menu.
 
 counter = 0
+
+#########################################################################
+# OBJECTS
+
+battery_subadc = ADC_substitute(PIN_BATTERY)  # The battery object
+Battery = Battery_Status(battery_subadc)
+
 
 #########################################################################
 # FUNCTIONS & CLASSES
@@ -217,8 +228,73 @@ def update_selected_drinks():
 # # PROGRAM
 
 
+battery_status_start = ticks_ms()
+battery_status_period_ms = 5000 # 1000ms = 1s
+
+mqtt_sender_start = ticks_ms()
+mqtt_sender_period_ms = 5000
+
+mqtt_connect_start = ticks_ms()
+mqtt_connect_period_ms = 20000
+
+
+#------------------------------------------------------
+# MQTT sender thread
+        
+def mqtt_thread():
+    #mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
+    while True:
+        try:
+            global mqtt_connect_start, mqtt_connect_period_ms, mqtt_sender_start, mqtt_sender_period_ms
+            if ticks_ms() - mqtt_connect_start > mqtt_connect_period_ms:
+                mqtt_connect_start = ticks_ms()
+                # Check connection
+                try:
+                    print("[MQTT] Checking connection.")
+                    mqtt_sender.client.connect()
+                    print("[MQTT] Connection OK.")
+                except:
+                    print("[MQTT] Connection failed. Reconnecting...")
+                    mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
+            
+            
+            if ticks_ms() - mqtt_sender_start > mqtt_sender_period_ms:
+                mqtt_sender_start = ticks_ms()
+                
+                global battery_pct, prev_bat_pct, MQTT_TOPIC_BATTERY
+                # Send data if there is a change (this principle saves power)
+                if battery_pct != prev_bat_pct:
+                    data_string = f"id:{DEVICE_ID}bat:{battery_pct}" # The data to send. CHANGE IT! (Added the "sensor_id")
+                    
+                    mqtt_sender.send_message(data_string, MQTT_TOPIC_BATTERY)
+                        
+                    # Update the previous values for use next time
+                    prev_bat_pct = battery_pct
+                    print(data_string)
+                
+                    
+        except KeyboardInterrupt:
+            print('Ctrl-C pressed...exiting')
+            mqtt_sender.client.disconnect()
+            sys.exit()
+
+_thread.start_new_thread(mqtt_thread, ())
+
+
+#------------------------------------------------------
+# Main program
+
 while True:
     try:
+        # ----------------------------------------
+        # Battery Status
+        if ticks_ms() - battery_status_start > battery_status_period_ms:
+            battery_status_start = ticks_ms()
+            
+            battery_pct = Battery.get_battery_pct()
+            print("Batteri procent:", battery_pct, "%")
+
+        
         # ----------------------------------------
         # Push button stuff
         

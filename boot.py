@@ -2,10 +2,16 @@ print("\n\n\nESP32 starter op")
 
 from machine import Pin, PWM
 import _thread
-import lcd_controller
 import sys
-
 from time import ticks_ms, sleep
+import network
+import esp
+
+import lcd_controller
+from credentials import credentials
+
+import gc
+gc.collect()
 
 
 #########################################################################
@@ -26,7 +32,6 @@ STRING_2 = "System starting"
 #########################################################################
 # BOOT PROGRAM
 
-
 # Async thread that runs a message on the LCD while the system is starting.
 def boot_sequence_thread():
     global STRING_2
@@ -40,25 +45,35 @@ def boot_sequence_thread():
     _thread.exit            
         
         
-
-
 _thread.start_new_thread(boot_sequence_thread, ())
 
-# Ukommenter, hvis der arbejdes med MQTT
-# --------------------------------------
 
-# import sys # Ukommenter, hvis der arbejdes med MQTT
-
-# sys.path.reverse()
+##############################################################################################
+# WRITE ADDITIONAL STARTUP CODE HERE
 
 
-# --------------------------------------
+# ssid = credentials['ssid']
+# password = credentials['password']
 
-# This sleep is used to simulate stuff that takes time to load. Like connecting to wifi or mqtt.
-sleep(0)
+# station = network.WLAN(network.STA_IF)
+
+# try:
+#     station.active(True)
+#     station.connect(ssid, password)
+
+#     while station.isconnected() == False:
+#         pass
+
+#     print('Connection successful')
+#     print(station.ifconfig())
+    
+# except: # Except tilføjet for at lade koden køre uden forbindelse til netværk.
+#     print("Network connection failed.")
+
+
+##############################################################################################
 
 starting = False
-
 
 # This while loop ensures that the code in main.py will not run before the boot sequence has stopped running.
 while not ready_to_continue:

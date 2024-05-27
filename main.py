@@ -47,6 +47,7 @@ DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiqui
 # VARIABLES
 
 menu_location = 0
+
 pb1 = Pin(PIN_BUTTON_1, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 pb2 = Pin(PIN_BUTTON_2, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
 pb3 = Pin(PIN_BUTTON_3, Pin.IN, Pin.PULL_UP)             # No external pull-up or debounce
@@ -57,6 +58,8 @@ counter = 0
 
 battery_pct = 0
 prev_bat_pct = 0
+
+selecting = False
 
 #########################################################################
 # OBJECTS
@@ -137,20 +140,13 @@ menu_categories.append(Menu("Confirm order", []))
 
 # ----------------------------------------
 
-print(menu_beers[4].name)
-
-print(menu_categories[0].list)
+# print(menu_beers[4].name)
+# print(menu_categories[0].list)
 
 
 menu_controller(menu_categories, True) # Sets the default menu
 
-# current_menu = menu_beers  # Used for testing, remove after
-
-
-#while True:
-    
-selecting = False
-
+# Responsible for overriding the current menu with a selection screen. Takes an integer as argument to display for the selection counter.
 def selecting_menu(count):
     lcd_controller.lcd.clear()
     lcd_controller.lcd_print_branding()
@@ -169,6 +165,8 @@ def reset_amount(obj_list):
         obj.amount = 0
     return obj_list
 
+
+# Responsible for overriding the current menu screen with a confirmation screen and sending the order over MQTT.
 def confirmation_menu():
     print(f"Opened confirmation screen")
     lcd_controller.lcd.clear()
@@ -186,7 +184,6 @@ def confirmation_menu():
             for obj in menu_categories[MENU_INDEX_SELECTED].list:
                 data.append({"name": obj.name, "amount": obj.amount}) # Puts the data of the drink entry into a dict
             
-
             data_string = f"{data}"
             mqtt_sender.send_message(data_string, MQTT_TOPIC_ORDER)
 
@@ -207,8 +204,7 @@ def confirmation_menu():
             break
     
 
-
-
+# Updates the list of selected drinks to include the drink objects that have an amount above 0.
 def update_selected_drinks():
     print("Updating selected drinks list.")
     drinks = menu_beers + menu_cocktails
@@ -218,9 +214,6 @@ def update_selected_drinks():
         if obj.amount > 0:
             drinks_with_amount.append(obj)
             print(f"Added {obj.name} to selected list")
-        # elif obj.amount <= 0 and obj in selected:
-        #     selected.remove(obj)
-        #     print(f"Removed {obj.name} from selected list")
     
     menu_categories[MENU_INDEX_SELECTED].list = drinks_with_amount
     print(f"Selected drinks: {menu_categories[MENU_INDEX_SELECTED].list}")
@@ -243,7 +236,8 @@ mqtt_connect_period_ms = 20000
 
 #------------------------------------------------------
 # MQTT sender thread
-        
+
+# Responsible for querying and sending data asynchronously to the MQTT-broker on set intervals.
 def mqtt_thread():
     #mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
     while True:
@@ -281,7 +275,7 @@ def mqtt_thread():
             mqtt_sender.client.disconnect()
             sys.exit()
 
-#_thread.start_new_thread(mqtt_thread, ())
+#_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
 
 
 #------------------------------------------------------

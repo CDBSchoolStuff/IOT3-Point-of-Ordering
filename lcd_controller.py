@@ -33,7 +33,7 @@ lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
 #########################################################################
 # FUNCTIONS
 
-
+# Takes a string as argument to display on the boot screen with animated dots behind it.
 def lcd_boot_message(string2):
         lcd.clear()
         lcd_print_branding()
@@ -42,12 +42,14 @@ def lcd_boot_message(string2):
         lcd.move_to(len(string2), 2)
         lcd_dot_animation()
 
+# Plays an animation with dots on the LCD.
 def lcd_dot_animation():
     dots = "....."
     for x in dots:
         sleep(0.2)
         lcd.putstr(x)
-        
+
+# Responsible for displaying menus on the LCD. Takes a menu location integer and a list of the menu to print.
 def lcd_print_menu(menu_location, menu_list):
     lcd.clear()
     lcd_print_branding()
@@ -71,11 +73,13 @@ def lcd_print_menu(menu_location, menu_list):
         lcd.move_to(0, 2)
         lcd.putstr("Nothing to see here yet...")
     
+# Prints branding text to the top row of the LCD.
 def lcd_print_branding():
     lcd.move_to(0, 0)
     lcd.putstr(center_text(BRANDING_STRING))
     
-    
+
+# Takes a string as argument and returns it with added spaces to make it centered on the LCD.
 def center_text(string):
     spacing_amount = (20-len(string))/2
 
@@ -86,5 +90,6 @@ def center_text(string):
     return spaces + string
 
 
+# Calculates the position needed for a string to sit on the right side of the LCD.
 def align_text_right(string):
     return (20-len(string))

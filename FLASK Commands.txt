@@ -1,0 +1,22 @@
+-----------={ Description }=-----------
+
+# Flask is a platform that allows for creating websits using the Python programming language.
+
+
+-----------={ Commands }=-----------
+
+# Run flask program. (Defaults to "app.py")
+flask run
+
+# Run application of a different name (In this example, a program called "hello.py"):
+flask --app hello run
+
+# Host the website to be viewable on the local network (Only do this if you trust everyone else on the network):
+flask run --host=0.0.0.0
+
+# Attribute for enabling debug mode: "--debug"
+# Examples: 
+flask --app hello run --debug
+flask --debug run --host=0.0.0.0
+flask run --debug
+flask --app app2 run --debug

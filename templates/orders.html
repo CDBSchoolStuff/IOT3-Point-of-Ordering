@@ -3,13 +3,24 @@
 {% block content %}
     <h1>{% block title %} Orders {% endblock %}</h1>
     <div style="width: 50%; margin: auto">
-        {% for order in orders %}
+        {% if orders %}
+            {% for order in orders %}
+            <div style="padding: 10px;
+            background-color: #EEE;
+            margin: 20px">
+    <p>#{{ loop.index }}</p>        
+            {% for drink in order %}
+                            <p style="font-size: 24px">{{ drink['name'] }} #{{ drink['amount'] }}</p>
+                    
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        {% elif not orders %}
             <div style="padding: 10px;
                         background-color: #EEE;
                         margin: 20px">
-                <p>#{{ loop.index }}</p>
-                <p style="font-size: 24px">{{ order }}</p>
-            </div>
-        {% endfor %}
+                <p style="font-size: 24px">Nothing to see here.</p>
+                </div>
+        {% endif %}
     </div>
 {% endblock %}

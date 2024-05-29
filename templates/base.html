@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %} {% endblock %} - FlaskApp</title>
+    <title>{% block title %} {% endblock %} - Bar 16</title>
     <style>
         nav a {
             color: #6e41d6;
@@ -14,11 +14,10 @@
 </head>
 <body>
     <nav>
-        <a href="{{ url_for('hello') }}">FlaskApp</a>
+        <a href="{{ url_for('hello') }}">Bar 16</a>
         <a href="{{ url_for('orders') }}">Orders</a>
-<!--        
-    <a href="{{ url_for('about') }}">About</a>
--->
+        <a href="{{ url_for('statistics') }}">Statistics</a>
+
     </nav>
     <hr>
     <div class="content">

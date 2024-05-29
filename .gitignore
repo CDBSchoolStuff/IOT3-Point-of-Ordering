@@ -1,6 +1,7 @@
 # Exclude credentials.py file
 credentials.py
-
+credentials_bar.py
+credentials_table.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

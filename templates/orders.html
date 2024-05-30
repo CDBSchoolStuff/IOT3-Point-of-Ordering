@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 
-{% block content %}    
+{% block content %}
 
 <h1 class="text-center mb-5 mt-5">
     {% block title %} Orders {% endblock %}
@@ -9,33 +9,34 @@
 
 <div style="width: 50%; margin: auto">
     <div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
-    <p style="font-size: 24px">Controls</p>
-    <form action="{{ url_for('complete') }}" method="post">
-            <button type="submit" class="btn btn-success">Complete</button>
-        </form>
-        <form action="{{ url_for('delete') }}" method="post">
-            <button type="submit" class="btn btn-danger">Delete</button>
-        </form>
-    </div>  
+
+        <h5>Controls</p>
+            <form action="{{ url_for('complete') }}" method="post">
+                <button type="submit" class="btn btn-success">Complete</button>
+            </form>
+            <form action="{{ url_for('delete') }}" method="post">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+    </div>
 </div>
 
-    <div style="width: 50%; margin: auto">
-        {% if orders %}
-        {% for order in orders %}
-            
-        <div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
-    <p>#{{ loop.index }}</p>        
-    
-    {% for drink in order %}
-                            <p style="font-size: 24px">{{ drink['name'] }} x{{ drink['amount'] }}</p>
-                    
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        {% elif not orders %}
-        <div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
-                <p style="font-size: 24px">Nothing to see here yet.</p>
-                </div>
-        {% endif %}
+<div style="width: 50%; margin: auto">
+    {% if orders %}
+    {% for order in orders %}
+
+    <div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
+        <h5>Order #{{ loop.index }}</h5>
+
+        {% for drink in order %}
+        <p style="font-size: 24px">{{ drink['name'] }} x{{ drink['amount'] }}</p>
+
+        {% endfor %}
     </div>
+    {% endfor %}
+    {% elif not orders %}
+    <div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
+        <p style="font-size: 24px">Nothing to see here yet.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

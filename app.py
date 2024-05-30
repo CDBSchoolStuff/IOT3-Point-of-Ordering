@@ -12,6 +12,9 @@ from credentials_bar import credentials
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_ORDER = "mqtt_order"
 
+MQTT_TOPIC_CONFIRM = "mqtt_confirm"
+
+battery_status = None
 
 ##########################################
 # FUNCTIONS
@@ -81,6 +84,8 @@ try:
             byte_string = msg.payload
             decoded_string = byte_string.decode("utf-8")
             
+            mqttc.publish(MQTT_TOPIC_CONFIRM, "ack")
+
             if len(decoded_string) > 50:
                 # initializing string
                 test_str = decoded_string
@@ -97,11 +102,18 @@ try:
                 result = eval(decoded_string)
                 order_data.append(result)
                 print(f"{msg.topic} {result}")
-
+        elif msg.topic == MQTT_TOPIC_BATTERY:
+            global battery_status
+            
+            byte_string = msg.payload
+            decoded_string = byte_string.decode("utf-8")
+            
+            battery_status = f"{decoded_string}% {datetime.datetime.utcnow()}"
+            print(f"{msg.topic} {battery_status}")
+            
     mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     mqttc.on_connect = on_connect
     mqttc.on_message = on_message
-
     mqttc.connect(mqtt_server)
 
     # Blocking call that processes network traffic, dispatches callbacks and
@@ -149,9 +161,9 @@ def hello():
 
 
 
-@app.route('/statistics/')
-def statistics():
-    return render_template('statistics.html')
+@app.route('/status/')
+def status():
+    return render_template('status.html', battery_status=battery_status)
 
 
 

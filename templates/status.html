@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<h1 class="text-center mb-5 mt-5">
+    {% block title %} Status {% endblock %}
+</h1>
+
+<div class="w-100 bg-secondary-subtle p-5 mb-5 rounded">
+    <h5>Table #1</h5>
+    <p style="font-size: 24px">
+        {% if battery_status %}
+        Battery: {{ battery_status }}
+        {% else %}
+        Battery: N/A
+        {% endif %}
+        </h5>
+</div>
+{% endblock %}

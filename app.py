@@ -1,6 +1,6 @@
 
 import datetime
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 
 app = Flask(__name__)
 
@@ -15,8 +15,6 @@ MQTT_TOPIC_ORDER = "mqtt_order"
 
 ##########################################
 # FUNCTIONS
-
-
 
 
 ##########################################
@@ -120,36 +118,40 @@ except:
 
 
 
+def complete_order():
+    print("Order completed")
 
+def delete_order():
+    print("Order deleted")
+
+
+@app.route('/complete', methods=['POST'])
+def complete():
+    complete_order()
+    return redirect(url_for('orders'))
+
+
+# Redirects root page to orders.
 @app.route('/')
 def hello():
-    return render_template('index.html', utc_dt=datetime.datetime.utcnow())
+    return redirect(url_for('orders'))
+
+
 
 @app.route('/statistics/')
 def statistics():
     return render_template('statistics.html')
 
+
+
 @app.route('/orders/')
 def orders():
-    # orders = ['This is the first order.',
-    #             'This is the second order.',
-    #             'This is the third order.',
-    #             'This is the fourth order.'
-    #             ]
     orders = order_data
     
-    # print(len("{'name': 'Dark 'n Stormy', 'amount': 40}"))
-    # print(len("{'name': '0', 'amount': 0},{'name': '0', 'amount': 0}"))
-    # order_list = []
-    # for obj in order_data:
-    #     dict = eval(obj)
-    #     order_list.append(dict)
-
-    
-    # orders = order_list
-    
     print(order_data)
-    #print(orders)
-    # amount = 
 
     return render_template('orders.html', orders=orders)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -12,7 +12,7 @@ from umqttsimple import MQTTClient
 from credentials_table import credentials
 
 
-# This library borrows code from a prior project: 
+# This library is based on code from a prior project: 
 # https://github.com/CDBSchoolStuff/IOT2-Cleanflow/blob/main/mqtt_sender.py
 
 
@@ -37,33 +37,20 @@ def restart_and_reconnect():
     time.sleep(10)
     machine.reset()
 
-from time import ticks_ms
-
 def connect_to_broker():
     try:
         print("[MQTT] Connecting to %s MQTT broker..." % (mqtt_server))
-        client = MQTTClient(client_id, mqtt_server)
         client.connect()
         print('[MQTT] Successfully connected to %s MQTT broker.' % (mqtt_server))
-        return client
-    except OSError as e:
-        print("[MQTT] Failed to connect to %s MQTT broker." % (mqtt_server))
-        client = MQTTClient(client_id, mqtt_server)
-        return client
-
-# def run_once():
-#     try:
-#         client = connect_and_subscribe()
-#     except OSError as e:
-#         restart_and_reconnect()
-      
+    except OSError as error:
+        print(error)
+        print("[MQTT] Failed to connect to %s MQTT broker." % (mqtt_server))  
       
 def send_message(msg, topic):
-    try:
-        #client = MQTTClient(client_id, mqtt_server)
-        #client.connect()
+    try:        
+        # client.connect()
         client.publish(topic, msg)
         print(f"[MQTT] Topic: {topic} | Message: {msg}")
-    except OSError as e:
-        # restart_and_reconnect()
+    except OSError as error:
+        print(error)
         print(f"[MQTT] Message not sent. Topic: {topic} | Message: {msg}")

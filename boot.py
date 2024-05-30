@@ -7,7 +7,7 @@ from time import ticks_ms, sleep
 import network
 
 import lcd_controller
-from credentials import credentials
+from credentials_table import credentials
 
 import gc
 gc.collect()

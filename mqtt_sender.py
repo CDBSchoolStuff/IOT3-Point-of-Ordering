@@ -9,7 +9,7 @@
 import ubinascii
 import machine, time
 from umqttsimple import MQTTClient
-from credentials import credentials
+from credentials_table import credentials
 
 
 # This library borrows code from a prior project: 

@@ -275,7 +275,7 @@ def mqtt_thread():
             mqtt_sender.client.disconnect()
             sys.exit()
 
-#_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
+_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
 
 
 #------------------------------------------------------

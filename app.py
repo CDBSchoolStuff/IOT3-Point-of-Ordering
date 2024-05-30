@@ -119,15 +119,26 @@ except:
 
 
 def complete_order():
-    print("Order completed")
+    if order_data:
+        order_data.pop(0)
+        print("Order completed")
 
 def delete_order():
-    print("Order deleted")
+    if order_data:
+        order_data.pop(0)
+        print("Order deleted")
 
 
+
+# Executes function and redirects to page.
 @app.route('/complete', methods=['POST'])
 def complete():
     complete_order()
+    return redirect(url_for('orders'))
+
+@app.route('/delete', methods=['POST'])
+def delete():
+    delete_order()
     return redirect(url_for('orders'))
 
 

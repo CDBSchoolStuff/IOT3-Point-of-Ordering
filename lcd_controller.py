@@ -6,11 +6,11 @@ from time import sleep
 #########################################################################
 # LCD CONTRAST CONFIGURATION
 
-pin_lcd_contrast = 23
-contrast_level = 250                        # Varies from LCD to LCD and wanted contrast level: 0-1023
-lcd_contrast = PWM(Pin(pin_lcd_contrast))   # Create PWM object from a pin
-lcd_contrast.freq(440)                      # Set PWM frequency
-lcd_contrast.duty(contrast_level)
+# pin_lcd_contrast = 23
+# contrast_level = 250                        # Varies from LCD to LCD and wanted contrast level: 0-1023
+# lcd_contrast = PWM(Pin(pin_lcd_contrast))   # Create PWM object from a pin
+# lcd_contrast.freq(440)                      # Set PWM frequency
+# lcd_contrast.duty(contrast_level)
 
 
 #########################################################################
@@ -93,3 +93,9 @@ def center_text(string):
 # Calculates the position needed for a string to sit on the right side of the LCD.
 def align_text_right(string):
     return (20-len(string))
+
+def print_simple_message(msg):
+    lcd.clear()
+    lcd_print_branding()
+    lcd.move_to(0, 2)
+    lcd.putstr(msg)

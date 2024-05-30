@@ -11,15 +11,12 @@ import machine, time
 from umqttsimple import MQTTClient
 from credentials_table import credentials
 
-
 # This library is based on code from a prior project: 
 # https://github.com/CDBSchoolStuff/IOT2-Cleanflow/blob/main/mqtt_sender.py
 
 
 mqtt_server = credentials['mqtt_server']
 client_id = ubinascii.hexlify(machine.unique_id())
-topic_sub = b'mqtt_data'
-topic_pub = b'mqtt_data'
 
 last_message = 0
 message_interval = 5
@@ -29,8 +26,14 @@ client = MQTTClient(client_id, mqtt_server)
 
 mqtt_connected = False
 
+waiting_for_ack = False
+
 #########################################################################
 # FUNCTIONS
+
+def mqtt_subscribe_callback():
+    global waiting_for_ack
+    waiting_for_ack = False
 
 def restart_and_reconnect():
     print('[MQTT] Failed to connect to MQTT broker. Reconnecting...')

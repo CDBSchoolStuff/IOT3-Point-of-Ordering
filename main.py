@@ -29,6 +29,7 @@ MQTT_TOPIC_ORDER = "mqtt_order"
 MQTT_TOPIC_CONFIRM = "mqtt_conf"
 
 MQTT_CHECK_CONNECTION_DELAY = 60
+ACK_TIMEOUT = 50000
 
 MENU_INDEX_BEER = 0
 MENU_INDEX_COCKTAIL = 1
@@ -61,7 +62,6 @@ counter = 0
 
 
 prev_bat_pct = 0
-
 
 selecting = False
 
@@ -169,7 +169,6 @@ def reset_amount(obj_list):
         obj.amount = 0
     return obj_list
 
-
 # Responsible for overriding the current menu screen with a confirmation screen and sending the order over MQTT.
 def confirmation_menu():
     print(f"Opened confirmation screen")
@@ -179,6 +178,7 @@ def confirmation_menu():
     lcd_controller.lcd.putstr(f"Press again to send order.")
 
     waiting_for_confirm = True
+    sleep(0.2)
 
     while waiting_for_confirm:
         if pb1.value() == 0:
@@ -189,7 +189,9 @@ def confirmation_menu():
                 data.append({"name": obj.name, "amount": obj.amount}) # Puts the data of the drink entry into a dict
             
             data_string = f"{data}"
+            
             mqtt_client.send_message(data_string, MQTT_TOPIC_ORDER)
+            wait_for_ack()
 
             reset_amount(menu_beers) # Reset the amount stored in the drink objects.
             reset_amount(menu_cocktails)
@@ -206,7 +208,31 @@ def confirmation_menu():
             waiting_for_confirm = False
             sleep(0.2)
             break
-    
+
+def wait_for_ack():
+    try:
+        mqtt_client.client.set_callback(mqtt_client.mqtt_subscribe_callback()) # Sets the mqtt subscribe callback function.
+        mqtt_client.client.subscribe(MQTT_TOPIC_CONFIRM)
+    except:
+        print("Failed to subscribe.")
+
+    mqtt_client.waiting_for_ack = True
+
+    start_ticks = ticks_ms()
+    print(f"Waiting for ack...")
+
+    while mqtt_client.waiting_for_ack:
+        lcd_controller.print_simple_message("Your drink is being prepared")
+        lcd_controller.lcd_dot_animation()
+
+        if ticks_ms() > (start_ticks + ACK_TIMEOUT):
+            lcd_controller.print_simple_message("Your order is ready!")
+            sleep(10)
+            mqtt_client.waiting_for_ack = False
+            break
+        sleep(1)
+
+
 
 # Updates the list of selected drinks to include the drink objects that have an amount above 0.
 def update_selected_drinks():
@@ -222,17 +248,12 @@ def update_selected_drinks():
     menu_categories[MENU_INDEX_SELECTED].list = drinks_with_amount
     print(f"Selected drinks: {menu_categories[MENU_INDEX_SELECTED].list}")
 
-
-
 # #########################################################################
 # # PROGRAM
 
 
 battery_status_start = ticks_ms()
 battery_status_period_ms = 10000 # 1000ms = 1s
-
-mqtt_sender_start = ticks_ms()
-mqtt_sender_period_ms = 5000
 
 mqtt_connect_start = ticks_ms()
 mqtt_connect_period_ms = 20000
@@ -275,9 +296,6 @@ while True:
         try:
             if ticks_ms() - battery_status_start > battery_status_period_ms: # Non breaking delay for the battery status.
                 battery_status_start = ticks_ms()
-                
-            #     battery_pct = Battery.get_battery_pct()
-            #     print("Batteri procent:", battery_pct, "%")
 
                 battery_pct = Battery.get_battery_pct()
                 print(f"Battery Pct: {battery_pct}%")
@@ -294,63 +312,60 @@ while True:
         # ----------------------------------------
         # Push button stuff
         
-        try:
-            pb1_val = pb1.value()              # Read onboard push button 1, active low
-            pb2_val = pb2.value()
-            # pb3_val = pb3.value()
+        pb1_val = pb1.value()              # Read onboard push button 1, active low
+        pb2_val = pb2.value()
+        # pb3_val = pb3.value()
+        
+        if pb1_val == 0:
+            if current_menu == menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
+                print(f"Set menu to: {menu_categories[menu_location].name}")
+                print(f"Menu entries: {menu_categories[menu_location].list}")
+                menu_controller(menu_categories[menu_location].list, True)
+                sleep(0.2)
+                
             
-            if pb1_val == 0:
-                if current_menu == menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
-                    print(f"Set menu to: {menu_categories[menu_location].name}")
-                    print(f"Menu entries: {menu_categories[menu_location].list}")
-                    menu_controller(menu_categories[menu_location].list, True)
-                    sleep(0.5)
-                    
+            # This handles the actions of the select button when inside either the Beer or Cocktail categories.
+            elif current_menu != menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
+                print(f"Selected: {current_menu[menu_location].name}")
                 
-                # This handles the actions of the select button when inside either the Beer or Cocktail categories.
-                elif current_menu != menu_categories and not selecting and current_menu != menu_categories[MENU_INDEX_SELECTED].list:
-                    print(f"Selected: {current_menu[menu_location].name}")
-                    
-                    # test_amount = 1
-                    # current_menu[menu_location].add_amount(test_amount) # Runs the add_amount method for the selected drink to add an amount to the order.
-                    # print(f"Added {test_amount} to amount for: {current_menu[menu_location].name}")
-                    
-                    #print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
-                    
-                    selecting_menu(0)
-                    selecting = True  
-                    sleep(0.5)
+                # test_amount = 1
+                # current_menu[menu_location].add_amount(test_amount) # Runs the add_amount method for the selected drink to add an amount to the order.
+                # print(f"Added {test_amount} to amount for: {current_menu[menu_location].name}")
                 
-                # Adds the counter variable to the amount of the current item & updates the list of selected drinks
-                elif selecting:
-                    current_menu[menu_location].add_amount(counter)
-                    print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
-                    selecting = False
-                    update_selected_drinks()
-                    # selected.append(current_menu[menu_location])
-                    menu_controller(current_menu, False) # Ensures that the selection screen closes
-                    counter = 0 # Resets counter variable
-                    sleep(0.5)
+                #print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
                 
-                # Adds clickable event to selected drinks menu.
-                elif current_menu == menu_categories[MENU_INDEX_SELECTED].list and menu_categories[MENU_INDEX_SELECTED].list:
-                    confirmation_menu()
-                    sleep(0.5)
+                selecting_menu(0)
+                selecting = True  
+                sleep(0.2)
+            
+            # Adds the counter variable to the amount of the current item & updates the list of selected drinks
+            elif selecting:
+                current_menu[menu_location].add_amount(counter)
+                print(f"{current_menu[menu_location].name} amount = {current_menu[menu_location].amount}")
+                selecting = False
+                update_selected_drinks()
+                # selected.append(current_menu[menu_location])
+                menu_controller(current_menu, False) # Ensures that the selection screen closes
+                counter = 0 # Resets counter variable
+                sleep(0.2)
+            
+            # Adds clickable event to selected drinks menu.
+            elif current_menu == menu_categories[MENU_INDEX_SELECTED].list and menu_categories[MENU_INDEX_SELECTED].list:
+                confirmation_menu()
+                sleep(0.2)
 
-            
-            # Allows for returning to the categories menu if not already in that menu.
-            if pb2_val == 0:
-                if current_menu != menu_categories:
-                    menu_location = 0 # Resets menu location to avoid outside index error
+        
+        # Allows for returning to the categories menu if not already in that menu.
+        if pb2_val == 0:
+            if current_menu != menu_categories:
+                menu_location = 0 # Resets menu location to avoid outside index error
+                
+                if selecting:
+                    selecting = False
                     
-                    if selecting:
-                        selecting = False
-                        
-                    print(f"Set current menu to: {menu_categories[menu_location].name}")
-                    menu_controller(menu_categories, False) # Returns to the category menu
-                    sleep(0.5)
-        except:
-            print("[Error] An error occurred in push button segment.")
+                print(f"Set current menu to: {menu_categories[menu_location].name}")
+                menu_controller(menu_categories, False) # Returns to the category menu
+                sleep(0.5)
         # ----------------------------------------
         # Rotary Encoder stuff
         try:

@@ -38,7 +38,7 @@ DEVICE_ID = 1
 
 
 DRINKS_BEER = ["Tuborg", "Carlsberg", "Slots", "Guld Damer", "Royal", "Albani", "Skovlyst"]
-DRINKS_COCKTAIL = ["Gin Hass", "Dark 'N Stormy", "Negroni", "Margarita", "Daiquiri"]
+DRINKS_COCKTAIL = ["Gin Hass", "Dark N Stormy", "Negroni", "Margarita", "Daiquiri"]
 
 
 

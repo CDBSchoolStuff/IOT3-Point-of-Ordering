@@ -1,0 +1,8 @@
+# Send test data
+mosquitto_pub -h 127.0.0.1 -t mqtt_order -m "[{'name': 'Tuborg', 'amount': 5}]"
+mosquitto_pub -h 127.0.0.1 -t mqtt_order -m "[{'name': 'Tuborg', 'amount': 4}, {'name': 'Carlsberg', 'amount': 2}, {'name': 'Dark N Stormy', 'amount': 1}]"
+
+
+# Start Mosquito MQTT broker:
+cd C:\Program Files\mosquitto
+mosquitto -v

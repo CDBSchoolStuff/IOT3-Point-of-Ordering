@@ -22,7 +22,7 @@ last_message = 0
 message_interval = 5
 counter = 0
 
-client = MQTTClient(client_id, mqtt_server)
+# client = MQTTClient(client_id, mqtt_server)
 
 mqtt_connected = False
 
@@ -31,25 +31,39 @@ waiting_for_ack = False
 #########################################################################
 # FUNCTIONS
 
-def mqtt_subscribe_callback():
+def sub_cb(topic, msg):
+  print((topic, msg))
+  if topic == b'mqtt_confirm' and msg == b'ack':
     global waiting_for_ack
     waiting_for_ack = False
+    print('ESP received ack message')
 
-def restart_and_reconnect():
-    print('[MQTT] Failed to connect to MQTT broker. Reconnecting...')
-    time.sleep(10)
-    machine.reset()
+    
+def connect_and_subscribe(topic_sub):
+  global client_id, mqtt_server
+  client = MQTTClient(client_id, mqtt_server)
+  client.set_callback(sub_cb)
+  client.connect()
+  client.subscribe(topic_sub)
+  print('Connected to %s MQTT broker, subscribed to %s topic' % (mqtt_server, topic_sub))
+  return client
 
-def connect_to_broker():
-    try:
-        print("[MQTT] Connecting to %s MQTT broker..." % (mqtt_server))
-        client.connect()
-        print('[MQTT] Successfully connected to %s MQTT broker.' % (mqtt_server))
-    except OSError as error:
-        print(error)
-        print("[MQTT] Failed to connect to %s MQTT broker." % (mqtt_server))  
+
+# def restart_and_reconnect():
+#     print('[MQTT] Failed to connect to MQTT broker. Reconnecting...')
+#     time.sleep(10)
+#     machine.reset()
+
+# def connect_to_broker():
+#     try:
+#         print("[MQTT] Connecting to %s MQTT broker..." % (mqtt_server))
+#         client.connect()
+#         print('[MQTT] Successfully connected to %s MQTT broker.' % (mqtt_server))
+#     except OSError as error:
+#         print(error)
+#         print("[MQTT] Failed to connect to %s MQTT broker." % (mqtt_server))  
       
-def send_message(msg, topic):
+def send_message(msg, topic, client):
     try:        
         # client.connect()
         client.publish(topic, msg)

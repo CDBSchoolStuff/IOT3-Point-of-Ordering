@@ -5,10 +5,12 @@ import _thread
 import sys
 from time import ticks_ms, sleep
 import network
+import esp
 
 import lcd_controller
 from credentials_table import credentials
 
+esp.osdebug(None)
 import gc
 gc.collect()
 

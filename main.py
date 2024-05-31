@@ -13,7 +13,7 @@ import _thread
 
 from battery_status import Battery_Status
 import lcd_controller
-import mqtt_client
+#import mqtt_client
 
 
 #########################################################################
@@ -68,6 +68,7 @@ counter = 0
 prev_bat_pct = 0
 
 selecting = False
+waiting_for_ack = False
 
 #########################################################################
 # OBJECTS
@@ -173,6 +174,96 @@ def reset_amount(obj_list):
         obj.amount = 0
     return obj_list
 
+
+# #########################################################################
+# # PROGRAM
+
+
+battery_status_start = ticks_ms()
+battery_status_period_ms = 10000 # 1000ms = 1s
+
+mqtt_connect_start = ticks_ms()
+mqtt_connect_period_ms = 20000
+
+
+#------------------------------------------------------
+# MQTT Stuff
+import ubinascii
+import machine, time
+from umqttsimple import MQTTClient
+from credentials_table import credentials
+
+mqtt_server = credentials['mqtt_server']
+client_id = ubinascii.hexlify(machine.unique_id())
+
+last_message = 0
+message_interval = 5
+counter = 0
+
+def sub_cb(topic, msg):
+  print((topic, msg))
+  if topic == b'mqtt_confirm' and msg == b'ack':
+    global waiting_for_ack
+    waiting_for_ack = False
+    print('ESP received ack message')
+
+def connect_and_subscribe(topic_sub):
+  global client_id, mqtt_server
+  
+  mqtt_client = MQTTClient(client_id, mqtt_server)
+  mqtt_client.set_callback(sub_cb)
+  mqtt_client.connect()
+  mqtt_client.subscribe(topic_sub)
+  print('Connected to %s MQTT broker, subscribed to %s topic' % (mqtt_server, topic_sub))
+  return mqtt_client
+
+
+def send_message(msg, topic):
+    try:        
+        # client.connect()
+        mqtt_client.publish(topic, msg)
+        print(f"[MQTT] Topic: {topic} | Message: {msg}")
+    except OSError as error:
+        print(error)
+        print(f"[MQTT] Message not sent. Topic: {topic} | Message: {msg}")
+
+
+try:
+    mqtt_client = connect_and_subscribe(MQTT_TOPIC_CONFIRM)
+except:
+    print("[MQTT] Connection failed.")
+
+
+# Responsible for querying the MQTT-broker on set intervals, ensuring that the device is connected.
+def mqtt_thread():
+    #mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
+    while True:
+        try:
+            global mqtt_client
+            
+            mqtt_client.check_msg()
+            
+            # Check connection
+            try:
+                print("[MQTT] Checking connection.")
+                mqtt_client.connect()
+                print("[MQTT] Connection OK.")
+            except:
+                print("[MQTT] Connection failed. Reconnecting...")
+                mqtt_client = connect_and_subscribe(MQTT_TOPIC_CONFIRM)
+                # mqtt_client.connect_to_broker() # Connect to MQTT
+                    
+        except KeyboardInterrupt:
+            print('Ctrl-C pressed...exiting')
+            mqtt_client.disconnect()
+            sys.exit()
+        
+        sleep(MQTT_CHECK_CONNECTION_DELAY)
+
+#_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
+
+#------------------------------------------------------
+
 # Responsible for overriding the current menu screen with a confirmation screen and sending the order over MQTT.
 def confirmation_menu():
     print(f"Opened confirmation screen")
@@ -194,7 +285,7 @@ def confirmation_menu():
             
             data_string = f"{data}"
             
-            mqtt_client.send_message(data_string, MQTT_TOPIC_ORDER)
+            send_message(data_string, MQTT_TOPIC_ORDER)
             wait_for_ack()
 
             reset_amount(menu_beers) # Reset the amount stored in the drink objects.
@@ -214,22 +305,35 @@ def confirmation_menu():
             break
 
 def wait_for_ack():
-    mqtt_client.waiting_for_ack = True
+    global waiting_for_ack
+    waiting_for_ack = True
 
     start_ticks = ticks_ms()
     print(f"Waiting for ack...")
-
-    while mqtt_client.waiting_for_ack:
-        lcd_controller.print_simple_message("Your drink is being prepared")
-        lcd_controller.lcd_dot_animation()
-
-        if ticks_ms() > (start_ticks + ACK_TIMEOUT):
-            lcd_controller.print_simple_message("Your order is ready!")
-            sleep(10)
-            mqtt_client.waiting_for_ack = False
+    
+    while waiting_for_ack:
+        try:
+        
+            lcd_controller.print_simple_message("Your drink is being prepared")
+            lcd_controller.lcd_dot_animation()
+            
+            if mqtt_client.check_msg():
+                lcd_controller.print_simple_message("Your order is ready!")
+                break
+                
+            if ticks_ms() > (start_ticks + ACK_TIMEOUT):
+                lcd_controller.print_simple_message("Error! Too much time passed.")
+                sleep(10)
+                waiting_for_ack = False
+                break
+            sleep(1)
+        except OSError as e:
+            lcd_controller.print_simple_message("Error!")
+            sleep(5)
             break
-        sleep(1)
-
+    
+    sleep(10)
+    waiting_for_ack = False
 
 
 # Updates the list of selected drinks to include the drink objects that have an amount above 0.
@@ -246,57 +350,14 @@ def update_selected_drinks():
     menu_categories[MENU_INDEX_SELECTED].list = drinks_with_amount
     print(f"Selected drinks: {menu_categories[MENU_INDEX_SELECTED].list}")
 
-# #########################################################################
-# # PROGRAM
-
-
-battery_status_start = ticks_ms()
-battery_status_period_ms = 10000 # 1000ms = 1s
-
-mqtt_connect_start = ticks_ms()
-mqtt_connect_period_ms = 20000
-
-
-#------------------------------------------------------
-# MQTT sender thread
-
-mqtt_client.connect_to_broker()
-
-try:
-    mqtt_client.client.set_callback(mqtt_client.mqtt_subscribe_callback()) # Sets the mqtt subscribe callback function.
-    mqtt_client.client.subscribe(MQTT_TOPIC_CONFIRM)
-except:
-    print("Failed to subscribe.")
-
-# Responsible for querying the MQTT-broker on set intervals, ensuring that the device is connected.
-def mqtt_thread():
-    #mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
-    while True:
-        try:
-            # Check connection
-            try:
-                print("[MQTT] Checking connection.")
-                mqtt_client.client.connect()
-                print("[MQTT] Connection OK.")
-            except:
-                print("[MQTT] Connection failed. Reconnecting...")
-                mqtt_client.connect_to_broker() # Connect to MQTT
-                    
-        except KeyboardInterrupt:
-            print('Ctrl-C pressed...exiting')
-            mqtt_client.client.disconnect()
-            sys.exit()
-        
-        sleep(MQTT_CHECK_CONNECTION_DELAY)
-
-_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
-
 
 #------------------------------------------------------
 # Main program
 
 while True:
     try:
+        mqtt_client.check_msg()
+        
         # ----------------------------------------
         # Battery Status
         try:
@@ -308,7 +369,7 @@ while True:
                 # Send data if there is a change (this principle saves power)
                 if battery_pct != prev_bat_pct:
                     
-                    mqtt_client.send_message(f"{battery_pct}", MQTT_TOPIC_BATTERY)
+                    send_message(f"{battery_pct}", MQTT_TOPIC_BATTERY)
                     # mqtt_client.send_message(battery_pct, MQTT_TOPIC_BATTERY)
                     # Update the previous values for use next time
                     prev_bat_pct = battery_pct

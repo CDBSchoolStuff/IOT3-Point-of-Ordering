@@ -313,13 +313,9 @@ def wait_for_ack():
     
     while waiting_for_ack:
         try:
-        
-            lcd_controller.print_simple_message("Your drink is being prepared")
+            lcd_controller.print_simple_message("Your drinks is being prepared")
             lcd_controller.lcd_dot_animation()
-            
-            if mqtt_client.check_msg():
-                lcd_controller.print_simple_message("Your order is ready!")
-                break
+            mqtt_client.check_msg()
                 
             if ticks_ms() > (start_ticks + ACK_TIMEOUT):
                 lcd_controller.print_simple_message("Error! Too much time passed.")
@@ -331,8 +327,8 @@ def wait_for_ack():
             lcd_controller.print_simple_message("Error!")
             sleep(5)
             break
-    
-    sleep(10)
+    lcd_controller.print_simple_message("Your order is ready!")
+    sleep(20)
     waiting_for_ack = False
 
 
@@ -356,8 +352,10 @@ def update_selected_drinks():
 
 while True:
     try:
-        mqtt_client.check_msg()
-        
+        try:
+            mqtt_client.check_msg()
+        except:
+            print("")
         # ----------------------------------------
         # Battery Status
         try:

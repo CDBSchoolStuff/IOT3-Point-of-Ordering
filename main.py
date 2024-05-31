@@ -233,7 +233,6 @@ try:
 except:
     print("[MQTT] Connection failed.")
 
-
 # Responsible for querying the MQTT-broker on set intervals, ensuring that the device is connected.
 def mqtt_thread():
     #mqtt_sender.client = mqtt_sender.connect_to_broker() # Connect to MQTT
@@ -260,6 +259,7 @@ def mqtt_thread():
         
         sleep(MQTT_CHECK_CONNECTION_DELAY)
 
+# DONT ENABLE! Causes issues with subscribing.
 #_thread.start_new_thread(mqtt_thread, ())              # Start MQTT thread.
 
 #------------------------------------------------------
@@ -352,10 +352,11 @@ def update_selected_drinks():
 
 while True:
     try:
-        try:
-            mqtt_client.check_msg()
-        except:
-            print("")
+        # # Checks MQTT-server for new messages. Uncomment when running the code for real.
+        # try:
+        #     mqtt_client.check_msg()
+        # except:
+        #     print("Failed to check MQTT message.")
         # ----------------------------------------
         # Battery Status
         try:

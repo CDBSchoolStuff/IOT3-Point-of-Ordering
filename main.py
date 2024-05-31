@@ -214,12 +214,6 @@ def confirmation_menu():
             break
 
 def wait_for_ack():
-    try:
-        mqtt_client.client.set_callback(mqtt_client.mqtt_subscribe_callback()) # Sets the mqtt subscribe callback function.
-        mqtt_client.client.subscribe(MQTT_TOPIC_CONFIRM)
-    except:
-        print("Failed to subscribe.")
-
     mqtt_client.waiting_for_ack = True
 
     start_ticks = ticks_ms()
@@ -265,6 +259,14 @@ mqtt_connect_period_ms = 20000
 
 #------------------------------------------------------
 # MQTT sender thread
+
+mqtt_client.connect_to_broker()
+
+try:
+    mqtt_client.client.set_callback(mqtt_client.mqtt_subscribe_callback()) # Sets the mqtt subscribe callback function.
+    mqtt_client.client.subscribe(MQTT_TOPIC_CONFIRM)
+except:
+    print("Failed to subscribe.")
 
 # Responsible for querying the MQTT-broker on set intervals, ensuring that the device is connected.
 def mqtt_thread():

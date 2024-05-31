@@ -19,10 +19,14 @@ import mqtt_client
 #########################################################################
 # CONFIGURATION
 
-PIN_BATTERY = 4
-PIN_BUTTON_1 = 14
-PIN_BUTTON_2 = 12
-PIN_BUTTON_3 = 0
+PIN_BUTTON_1 = 12
+PIN_BUTTON_2 = 13
+PIN_BUTTON_3 = 14
+PIN_BUTTON_3 = 4 # Rotery Encoder button
+
+PIN_BATTERY = 35
+PIN_BUZZER = 26
+PIN_NEOPIXEL = 15
 
 MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_ORDER = "mqtt_order"

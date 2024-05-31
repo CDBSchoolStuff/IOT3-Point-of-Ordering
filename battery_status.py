@@ -16,8 +16,8 @@ class Battery_Status:
     ########################################
     # CONFIGURATION
 
-    max_bat_voltage = 4.2
-    min_bat_voltage = 3.0
+    MAX_BAT_VOLTAGE = 4.2
+    MIN_BAT_VOLTAGE = 3.0
 
 
     ########################################
@@ -27,7 +27,7 @@ class Battery_Status:
 
 
     ########################################
-    # VARIABLES
+    # VARIABLES & CONSTANTS
 
     # Previous values
     bat_pct = None
@@ -35,9 +35,8 @@ class Battery_Status:
     buffer = []                            # Opret en tom buffer
 
     # Resistors
-    resistor1 = 6800
-    resistor2 = 6800
-    max_spaendingsdeler_voltage_measurement = 2.07   # Ikke brugt, bare til egen info. Målt ved 4.2V input med 2x 4.7k modstande.
+    RESISTOR_1 = 6800
+    RESISTOR_2 = 6800
 
 
     ########################################
@@ -48,8 +47,8 @@ class Battery_Status:
         U_out = (U * R2) / (R1 + R2)
         return U_out
 
-    max_spaendingsdeler_voltage = calc_spaendingsdeler(max_bat_voltage, resistor1, resistor2)
-    min_spaendingsdeler_voltage = calc_spaendingsdeler(min_bat_voltage, resistor1, resistor2)
+    max_spaendingsdeler_voltage = calc_spaendingsdeler(MAX_BAT_VOLTAGE, RESISTOR_1, RESISTOR_2)
+    min_spaendingsdeler_voltage = calc_spaendingsdeler(MIN_BAT_VOLTAGE, RESISTOR_1, RESISTOR_2)
 
     print(f"Spaendingsdeler Max Voltage: {max_spaendingsdeler_voltage}")
     print(f"Spaendingsdeler Min Voltage: {min_spaendingsdeler_voltage}")

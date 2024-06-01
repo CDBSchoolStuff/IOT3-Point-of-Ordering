@@ -1,16 +1,8 @@
+#########################################################################
+# IMPORT
 from machine import Pin, PWM
 from gpio_lcd import GpioLcd
 from time import sleep
-
-
-#########################################################################
-# LCD CONTRAST CONFIGURATION
-
-# pin_lcd_contrast = 23
-# contrast_level = 250                        # Varies from LCD to LCD and wanted contrast level: 0-1023
-# lcd_contrast = PWM(Pin(pin_lcd_contrast))   # Create PWM object from a pin
-# lcd_contrast.freq(440)                      # Set PWM frequency
-# lcd_contrast.duty(contrast_level)
 
 
 #########################################################################
@@ -28,8 +20,6 @@ lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
                 num_lines=4, num_columns=20)
 
 
-
-
 #########################################################################
 # FUNCTIONS
 
@@ -42,12 +32,14 @@ def lcd_boot_message(string2):
         lcd.move_to(len(string2), 2)
         lcd_dot_animation()
 
+
 # Plays an animation with dots on the LCD.
 def lcd_dot_animation():
     dots = "....."
     for x in dots:
         sleep(0.2)
         lcd.putstr(x)
+
 
 # Responsible for displaying menus on the LCD. Takes a menu location integer and a list of the menu to print.
 def lcd_print_menu(menu_location, menu_list):
@@ -73,6 +65,7 @@ def lcd_print_menu(menu_location, menu_list):
         lcd.move_to(0, 2)
         lcd.putstr("Nothing to see here yet...")
     
+
 # Prints branding text to the top row of the LCD.
 def lcd_print_branding():
     lcd.move_to(0, 0)
@@ -82,11 +75,9 @@ def lcd_print_branding():
 # Takes a string as argument and returns it with added spaces to make it centered on the LCD.
 def center_text(string):
     spacing_amount = (20-len(string))/2
-
     spaces = ""
     for i in range(spacing_amount):
         spaces += " "
-    
     return spaces + string
 
 
@@ -94,6 +85,7 @@ def center_text(string):
 def align_text_right(string):
     return (20-len(string))
 
+# Tages a string as an argument and prints that to the LCD with branding.
 def print_simple_message(msg):
     lcd.clear()
     lcd_print_branding()

@@ -154,6 +154,8 @@ def reset_amount(obj_list):
 # ----------------------------------------
 # MQTT methods
 
+
+# Taken from https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
 def sub_cb(topic, msg):
   print((topic, msg))
   if topic == b'mqtt_confirm' and msg == b'ack':
@@ -161,7 +163,7 @@ def sub_cb(topic, msg):
     waiting_for_ack = False
     print('ESP received ack message')
 
-
+# Taken from https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
 def connect_and_subscribe(topic_sub):
   global client_id, mqtt_server
   
@@ -172,7 +174,7 @@ def connect_and_subscribe(topic_sub):
   print('Connected to %s MQTT broker, subscribed to %s topic' % (mqtt_server, topic_sub))
   return mqtt_client
 
-
+# Responsible for trying to send a message to MQTT-server when called. Takes a message and mqtt topic as arguments.
 def send_message(msg, topic):
     try:        
         # client.connect()
@@ -185,7 +187,7 @@ def send_message(msg, topic):
 # ----------------------------------------
 # More menu methods
 
-# Responsible for overriding the current menu screen with a confirmation screen and sending the order to the MQTT-server.
+# Overrides the current menu screen with a confirmation screen and sending the order to the MQTT-server.
 def confirmation_menu():
     print(f"Opened confirmation screen")
     lcd_controller.print_simple_message("Press again to send order.")
@@ -222,7 +224,7 @@ def confirmation_menu():
             sleep(0.2)
             break
 
-# Responsible for showing a waiting menu while awaiting a confirmation message from the MQTT-broker. The menu closes if either a confirmation message is received, or a timeout delay has been exceeded.
+# Shows a waiting menu while awaiting a confirmation message from the MQTT-broker. The menu closes if either a confirmation message is received, or a timeout delay has been exceeded.
 def wait_for_ack():
     global waiting_for_ack
     waiting_for_ack = True

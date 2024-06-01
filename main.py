@@ -41,7 +41,7 @@ MQTT_TOPIC_BATTERY = "mqtt_bat"
 MQTT_TOPIC_ORDER = "mqtt_order"
 MQTT_TOPIC_CONFIRM = "mqtt_confirm"
 MQTT_CHECK_CONNECTION_DELAY = 60
-ACK_TIMEOUT = 1200000
+COMPLETE_TIMEOUT = 1200000
 
 # Menu
 MENU_INDEX_BEER = 0
@@ -68,7 +68,7 @@ menu_location = 0
 current_menu = []  # List that holds a copy of the currently displayed menu.
 counter = 0
 selecting = False
-waiting_for_ack = False
+waiting_for_complete = False
 
 # MQTT
 mqtt_server = credentials['mqtt_server']
@@ -158,10 +158,10 @@ def reset_amount(obj_list):
 # Taken from https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
 def sub_cb(topic, msg):
   print((topic, msg))
-  if topic == b'mqtt_confirm' and msg == b'ack':
-    global waiting_for_ack
-    waiting_for_ack = False
-    print('ESP received ack message')
+  if topic == b'mqtt_confirm' and msg == b'complete':
+    global waiting_for_complete
+    waiting_for_complete = False
+    print('ESP received completion message')
 
 # Taken from https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
 def connect_and_subscribe(topic_sub):
@@ -206,7 +206,7 @@ def confirmation_menu():
             data_string = f"{data}"
             
             send_message(data_string, MQTT_TOPIC_ORDER)
-            wait_for_ack()
+            wait_for_complete()
 
             reset_amount(menu_beers) # Reset the amount stored in the drink objects.
             reset_amount(menu_cocktails)
@@ -225,23 +225,23 @@ def confirmation_menu():
             break
 
 # Shows a waiting menu while awaiting a confirmation message from the MQTT-broker. The menu closes if either a confirmation message is received, or a timeout delay has been exceeded.
-def wait_for_ack():
-    global waiting_for_ack
-    waiting_for_ack = True
+def wait_for_complete():
+    global waiting_for_complete
+    waiting_for_complete = True
 
     start_ticks = ticks_ms()
-    print(f"Waiting for ack...")
+    print(f"Waiting for completion confirmation...")
     
-    while waiting_for_ack:
+    while waiting_for_complete:
         try:
             lcd_controller.print_simple_message("Your drinks is being prepared")
             lcd_controller.lcd_dot_animation()
             mqtt_client.check_msg()
                 
-            if ticks_ms() > (start_ticks + ACK_TIMEOUT):
+            if ticks_ms() > (start_ticks + COMPLETE_TIMEOUT):
                 lcd_controller.print_simple_message("Error! Too much time passed.")
                 sleep(10)
-                waiting_for_ack = False
+                waiting_for_complete = False
                 break
             sleep(1)
         except OSError as e:
@@ -250,7 +250,7 @@ def wait_for_ack():
             break
     lcd_controller.print_simple_message("Your order is ready!")
     sleep(20)
-    waiting_for_ack = False
+    waiting_for_complete = False
 
 
 # Updates the list of selected drinks to include the drink objects that have an amount above 0.

@@ -99,6 +99,7 @@ class Drink():
     def remove_amount(self, val):
         self.amount += val
 
+
 # Takes a list and a boolean as arguments. The list is for constructing the menu. The boolean is for indicating that the menu location should be reset when printing.
 def menu_controller(menu_list, reset_location):
     
@@ -149,21 +150,14 @@ menu_categories.append(Menu("Confirm order", []))
 
 # ----------------------------------------
 
-# print(menu_beers[4].name)
-# print(menu_categories[0].list)
-
 
 menu_controller(menu_categories, True) # Sets the default menu
 
 # Responsible for overriding the current menu with a selection screen. Takes an integer as argument to display for the selection counter.
 def selecting_menu(count):
-    lcd_controller.lcd.clear()
-    lcd_controller.lcd_print_branding()
-    lcd_controller.lcd.move_to(0, 2)
-
     name = current_menu[menu_location].name
-    lcd_controller.lcd.putstr(f"{name}")
-    
+    lcd_controller.print_simple_message(f"{name}")
+
     lcd_controller.lcd.move_to(lcd_controller.align_text_right(f"{count}"), 2)
     lcd_controller.lcd.putstr(f"{count}")
 
@@ -267,10 +261,7 @@ def mqtt_thread():
 # Responsible for overriding the current menu screen with a confirmation screen and sending the order over MQTT.
 def confirmation_menu():
     print(f"Opened confirmation screen")
-    lcd_controller.lcd.clear()
-    lcd_controller.lcd_print_branding()
-    lcd_controller.lcd.move_to(0, 2)
-    lcd_controller.lcd.putstr(f"Press again to send order.")
+    lcd_controller.print_simple_message("Press again to send order.")
 
     waiting_for_confirm = True
     sleep(0.2)

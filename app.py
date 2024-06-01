@@ -19,51 +19,25 @@ battery_status = None
 ##########################################
 # FUNCTIONS
 
+def complete_order():
+    if order_data:
+        order_data.pop(0)
+        mqttc.publish(MQTT_TOPIC_CONFIRM, "complete")
+        print("Order completed")
 
-##########################################
-# DATABASE STUFF
-
-# import mysql.connector
-
-# mydb = mysql.connector.connect(
-#   host="localhost",
-#   user=credentials["mysql_user"],
-#   password=credentials['mysql_password']
-# )
-
-# mycursor = mydb.cursor()
-# try:
-#     mycursor.execute("CREATE DATABASE bar16") # Creates database named "bar16" if it doesn't already exist.
-# except:
-#     print("Database already exist. Continuing...")
-
-
-
-
-
-# mydb = mysql.connector.connect(
-#   host="localhost",
-#   user=credentials["mysql_user"],
-#   password=credentials['mysql_password']
-#   database="bar16"
-# )
-
-# mycursor = mydb.cursor()
-
-# mycursor.execute(f"CREATE TABLE completed_orders (drink_type VARCHAR(255), amount VARCHAR(255)), table VARCHAR(255))")
+def delete_order():
+    if order_data:
+        order_data.pop(0)
+        print("Order deleted")
 
 
 ##########################################
 # MQTT CLIENT
 
-
 # https://pypi.org/project/paho-mqtt/
 import paho.mqtt.client as mqtt
 
 mqtt_server = credentials['mqtt_server']
-
-import paho.mqtt.client as mqtt
-
 order_data = []
 
 try:
@@ -84,7 +58,7 @@ try:
             byte_string = msg.payload
             decoded_string = byte_string.decode("utf-8")
             
-            mqttc.publish(MQTT_TOPIC_CONFIRM, "ack")
+            mqttc.publish(MQTT_TOPIC_CONFIRM, "ack") # Sends an "ack" message to the confirmation topic when a message is received.
 
             if len(decoded_string) > 50:
                 # initializing string
@@ -126,21 +100,9 @@ try:
 except:
     print("Failed to connect to MQTT broker. Continuing...")
 
+
 ##########################################
-
-
-
-def complete_order():
-    if order_data:
-        order_data.pop(0)
-        print("Order completed")
-
-def delete_order():
-    if order_data:
-        order_data.pop(0)
-        print("Order deleted")
-
-
+# FLASK APPLICATION
 
 # Executes function and redirects to page.
 @app.route('/complete', methods=['POST'])
@@ -148,6 +110,8 @@ def complete():
     complete_order()
     return redirect(url_for('orders'))
 
+
+# Executes function and redirects to page.
 @app.route('/delete', methods=['POST'])
 def delete():
     delete_order()
@@ -160,19 +124,15 @@ def hello():
     return redirect(url_for('orders'))
 
 
-
 @app.route('/status/')
 def status():
     return render_template('status.html', battery_status=battery_status)
 
 
-
 @app.route('/orders/')
 def orders():
     orders = order_data
-    
     print(order_data)
-
     return render_template('orders.html', orders=orders)
 
 

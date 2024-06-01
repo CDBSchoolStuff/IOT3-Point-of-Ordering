@@ -70,10 +70,9 @@ counter = 0
 selecting = False
 waiting_for_ack = False
 
-
 # MQTT
 mqtt_server = credentials['mqtt_server']
-client_id = ubinascii.hexlify(machine.unique_id())
+client_id = credentials['client_id']
 last_message = 0
 message_interval = 5
 counter = 0

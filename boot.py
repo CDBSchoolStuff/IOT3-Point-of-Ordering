@@ -1,5 +1,7 @@
 print("\n\n\nESP32 starter op")
 
+#########################################################################
+# IMPORT
 from machine import Pin, PWM
 import _thread
 import sys
@@ -16,22 +18,18 @@ gc.collect()
 
 
 #########################################################################
-# VARIABLES
+# VARIABLES & CONSTANTS
 
 starting = True
 ready_to_continue = False
 has_run = False
 system_start_ticks = ticks_ms()
 
-
-#########################################################################
-# CONSTANTS
-
 STRING_2 = "System starting"
 
 
 #########################################################################
-# BOOT PROGRAM
+# STARTUP SCREEN
 
 # Async thread that runs a message on the LCD while the system is starting.
 def boot_sequence_thread():
@@ -45,13 +43,11 @@ def boot_sequence_thread():
     ready_to_continue = True
     _thread.exit            
         
-        
 _thread.start_new_thread(boot_sequence_thread, ())
 
 
 #########################################################################
-# WIFI CODE
-
+# WIFI CONNECTIVITY
 
 ssid = credentials['ssid']
 password = credentials['password']

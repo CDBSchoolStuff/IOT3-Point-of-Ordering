@@ -155,7 +155,7 @@ def reset_amount(obj_list):
 # MQTT methods
 
 
-# Taken from https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
+# Based on https://randomnerdtutorials.com/micropython-mqtt-esp32-esp8266/
 def sub_cb(topic, msg):
   print((topic, msg))
   if topic == b'mqtt_confirm' and msg == b'complete':
